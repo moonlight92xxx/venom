@@ -305,7 +305,7 @@ If you broadcast copyrighted music, you need licenses from:
 
 ## 📞 SUPPORT
 
-- **Email:** venom.studios@gmail.com
+- **Email:** velxtstudio@gmail.com
 - **Response time:** 48 hours (business days)
 - **Duration:** 30 days from purchase
 - **Scope:** Bug fixes, deployment help, stream configuration
@@ -329,6 +329,5 @@ Updates are FREE for life with any license.
 **VENOM RADIO PRO**
 *The venom is loose.*
 
-📧 venom.studios@gmail.com
-
+📧  velxtstudio@gmail.com
 </div>
