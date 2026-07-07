@@ -1,0 +1,1963 @@
+/* ============================================================
+   VENOM // MAIN — main.html
+   Dark cyberpunk + venom aesthetic, matches the reference photo
+   Layout:
+     - top bar: ghost protocol / diamond logo / timestamp + stats
+     - main grid: [profile+chat | venom figure | music player]
+     - bottom-right: OFFLINE/ONLINE toggle (pill shape, not square)
+   ============================================================ */
+
+:root {
+  --v-black: #000000;
+  --v-void: #050608;
+  --v-dark: #0a0d10;
+  --v-panel: #11151a;
+  --v-panel-2: #0d1115;
+  --v-edge: #1c2228;
+  --v-green: #00ff66;        /* VENOM extreme purple (replaces green) */
+  --v-green-bright: #2cffa0; /* lighter purple */
+  --v-green-dim: #008f38;    /* deep purple */
+  --v-green-deep: #003d1a;   /* void purple */
+  --v-white: #f4fff8;
+  --v-grey: #8a948f;
+  --v-grey-dim: #4a544f;
+  --v-red: #ff2244;
+  --v-orange: #ff8c1a;
+  --v-glow: 0 0 8px rgba(0, 255, 102, 0.7), 0 0 24px rgba(0, 255, 102, 0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--v-black);
+  color: var(--v-white);
+  font-family: 'Share Tech Mono', monospace;
+  overflow-x: hidden;
+}
+
+body {
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============== BACKGROUND LAYERS ============== */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 255, 102, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 102, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+.bg-vines {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  opacity: 0.85;
+}
+.bg-vines svg { width: 100%; height: 100%; }
+
+.bg-noise {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/></svg>");
+  mix-blend-mode: screen;
+}
+
+.bg-scan {
+  position: fixed; inset: 0; z-index: 3; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 102, 0.018) 0px,
+    rgba(0, 255, 102, 0.018) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+}
+
+/* ============== TOP BAR ============== */
+.top-bar {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 18px 28px;
+  gap: 20px;
+  border-bottom: 1px solid rgba(0, 255, 102, 0.15);
+}
+
+.tb-left { justify-self: start; }
+
+.ghost-protocol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--v-grey);
+  text-transform: uppercase;
+}
+
+.gp-dot {
+  width: 8px; height: 8px;
+  background: var(--v-green);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--v-green);
+  animation: gpBlink 1.4s ease-in-out infinite;
+}
+
+@keyframes gpBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.tb-center { justify-self: center; }
+
+.diamond-logo svg { width: 38px; height: 38px; }
+
+.tb-right {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: var(--v-grey);
+  letter-spacing: 2px;
+}
+
+.stats-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--v-white);
+}
+
+.stat-arrow {
+  color: var(--v-green);
+  font-size: 10px;
+}
+
+.stat-dot {
+  width: 8px; height: 8px;
+  background: var(--v-green);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--v-green);
+  margin-left: 2px;
+}
+
+/* ============== MAIN GRID ============== */
+.main-grid {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr 360px;
+  gap: 24px;
+  padding: 24px 28px 110px 28px;
+  align-items: start;
+}
+
+/* ============== PANELS ============== */
+.panel {
+  background: linear-gradient(180deg, var(--v-panel) 0%, var(--v-panel-2) 100%);
+  border: 1px solid var(--v-edge);
+  border-radius: 6px;
+  padding: 18px;
+  position: relative;
+  box-shadow:
+    0 0 20px rgba(0, 0, 0, 0.6),
+    inset 0 0 20px rgba(0, 255, 102, 0.02);
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 14px; height: 14px;
+  border-top: 1px solid var(--v-green);
+  border-left: 1px solid var(--v-green);
+  pointer-events: none;
+}
+
+.panel::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 14px; height: 14px;
+  border-bottom: 1px solid var(--v-green);
+  border-right: 1px solid var(--v-green);
+  pointer-events: none;
+}
+
+.panel-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--v-grey);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--v-green);
+  box-shadow: 0 0 6px var(--v-green);
+}
+
+.panel-x {
+  position: absolute;
+  top: 14px; right: 14px;
+  color: var(--v-grey-dim);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s, text-shadow 0.2s;
+  z-index: 10;
+}
+
+.panel-x:hover { color: var(--v-red); }
+
+/* When the chat view is open, make the X button glow green so users
+   know they can click it to close the chat and return to the bot. */
+#chat-panel .panel-x {
+  font-size: 16px;
+}
+#chat-view:not(.hidden) ~ .panel-x,
+#chat-panel:has(#chat-view:not(.hidden)) .panel-x {
+  color: var(--v-green);
+  text-shadow: 0 0 8px var(--v-green);
+  animation: xPulse 2s ease-in-out infinite;
+}
+@keyframes xPulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* ============== PROFILE PANEL ============== */
+.profile-panel { margin-bottom: 18px; }
+
+.profile-name {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 38px;
+  color: var(--v-white);
+  letter-spacing: 4px;
+  text-shadow: 0 0 12px rgba(0, 255, 102, 0.5);
+  line-height: 1;
+}
+
+.profile-sub {
+  font-size: 11px;
+  color: var(--v-grey);
+  font-style: italic;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+
+.profile-level {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pl-lbl {
+  font-size: 11px;
+  color: var(--v-grey);
+  letter-spacing: 3px;
+}
+
+.pl-val {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--v-white);
+  letter-spacing: 2px;
+}
+
+.profile-exp {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.exp-lbl {
+  font-size: 10px;
+  color: var(--v-grey);
+  letter-spacing: 2px;
+  grid-row: 1;
+}
+
+.exp-val {
+  font-size: 11px;
+  color: var(--v-grey);
+  text-align: right;
+}
+
+.exp-bar {
+  grid-column: 1 / -1;
+  height: 4px;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.exp-fill {
+  height: 100%;
+  width: 88.888%;
+  background: linear-gradient(90deg, var(--v-green-deep), var(--v-green));
+  box-shadow: 0 0 8px var(--v-green);
+  position: relative;
+}
+
+.exp-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  animation: expShine 3s linear infinite;
+}
+
+@keyframes expShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ============== CHAT PANEL ============== */
+.chat-panel { display: flex; flex-direction: column; min-height: 320px; }
+
+#chat-state-label { color: var(--v-green); }
+
+.chat-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 0 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: var(--v-dark); }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--v-green-dim); border-radius: 2px; }
+
+.msg {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.msg-author { color: var(--v-grey); font-weight: bold; }
+.msg-text { color: var(--v-grey); }
+.msg-time { color: var(--v-grey-dim); font-size: 10px; }
+
+.msg-bot .msg-author { color: var(--v-green); text-shadow: 0 0 6px rgba(0, 255, 102, 0.5); }
+.msg-bot .msg-text { color: var(--v-white); }
+
+.msg-system .msg-author { color: var(--v-orange); }
+.msg-system .msg-text { color: var(--v-orange); font-style: italic; }
+
+/* state-driven chat coloring */
+body[data-state="no-key"] #chat-state-label,
+body[data-state="bad-key"] #chat-state-label,
+body[data-state="rate-limited"] #chat-state-label,
+body[data-state="network-down"] #chat-state-label {
+  color: var(--v-red);
+  animation: errorBlink 0.8s steps(2) infinite;
+}
+
+body[data-state="no-key"] #conn-msg-text,
+body[data-state="bad-key"] #conn-msg-text,
+body[data-state="rate-limited"] #conn-msg-text,
+body[data-state="network-down"] #conn-msg-text {
+  color: var(--v-red);
+}
+
+@keyframes errorBlink {
+  50% { opacity: 0.4; }
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.chat-input {
+  flex: 1;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  color: var(--v-white);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  border-radius: 4px;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.chat-input:focus {
+  border-color: var(--v-green);
+  box-shadow: 0 0 0 1px var(--v-green), inset 0 0 8px rgba(0, 255, 102, 0.1);
+}
+
+.chat-input::placeholder { color: var(--v-grey-dim); }
+
+.chat-send {
+  background: var(--v-dark);
+  border: 1px solid var(--v-green);
+  color: var(--v-green);
+  width: 38px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.chat-send:hover {
+  background: var(--v-green);
+  color: var(--v-black);
+  box-shadow: 0 0 12px var(--v-green);
+}
+
+/* Chat input is ONLY disabled when the user explicitly goes OFFLINE.
+   In all other states (no-key, bad-key, rate-limited, network-down),
+   the ECHO mode fallback still works, so the user can always type. */
+body[data-state="offline"] .chat-input,
+body[data-state="offline"] .chat-send {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Make sure the chat input is always selectable and focusable
+   (overrides body's user-select: none) */
+.chat-input {
+  user-select: text;
+  -webkit-user-select: text;
+  pointer-events: auto;
+}
+
+/* ============== CENTER COLUMN — VENOM FIGURE ============== */
+.col-center {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 20px;
+}
+
+.figure-frame {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 320 / 360;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figure-frame svg.diamond-border {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 30px rgba(0, 255, 102, 0.35));
+}
+
+/* venom eyes — flicker when no signal */
+.venom-eye {
+  transition: opacity 0.1s, fill 0.2s;
+}
+
+body[data-state="connecting"] .venom-eye {
+  animation: eyePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes eyePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+body[data-state="no-key"] .venom-eye,
+body[data-state="bad-key"] .venom-eye,
+body[data-state="rate-limited"] .venom-eye,
+body[data-state="network-down"] .venom-eye {
+  animation: eyeFlicker 0.18s steps(2) infinite;
+  fill: #440000 !important;
+}
+
+@keyframes eyeFlicker {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.1; }
+}
+
+/* dim the figure when no signal */
+body[data-state="no-key"] .figure-frame,
+body[data-state="bad-key"] .figure-frame,
+body[data-state="rate-limited"] .figure-frame,
+body[data-state="network-down"] .figure-frame {
+  filter: grayscale(0.4) brightness(0.55);
+  transition: filter 0.4s;
+}
+
+body[data-state="online"] .figure-frame,
+body[data-state="connecting"] .figure-frame {
+  filter: none;
+  transition: filter 0.4s;
+}
+
+/* NO SIGNAL overlay */
+.no-signal-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, transparent 70%);
+}
+
+body[data-state="no-key"] .no-signal-overlay,
+body[data-state="bad-key"] .no-signal-overlay,
+body[data-state="rate-limited"] .no-signal-overlay,
+body[data-state="network-down"] .no-signal-overlay {
+  display: flex;
+}
+
+.ns-bars {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 24px;
+}
+
+.ns-bars span {
+  width: 4px;
+  background: var(--v-red);
+  box-shadow: 0 0 6px var(--v-red);
+  animation: nsBar 0.9s ease-in-out infinite;
+}
+
+.ns-bars span:nth-child(1) { height: 30%; animation-delay: 0s; }
+.ns-bars span:nth-child(2) { height: 60%; animation-delay: 0.1s; }
+.ns-bars span:nth-child(3) { height: 100%; animation-delay: 0.2s; }
+.ns-bars span:nth-child(4) { height: 60%; animation-delay: 0.3s; }
+.ns-bars span:nth-child(5) { height: 30%; animation-delay: 0.4s; }
+
+@keyframes nsBar {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+.ns-text {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 6px;
+  color: var(--v-red);
+  text-shadow: 0 0 12px var(--v-red);
+  animation: nsTextBlink 0.6s steps(2) infinite;
+}
+
+@keyframes nsTextBlink {
+  50% { opacity: 0.4; }
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  pointer-events: none;
+}
+
+body[data-state="connecting"] .loading-overlay {
+  display: flex;
+}
+
+.ld-ring {
+  width: 44px; height: 44px;
+  border: 2px solid rgba(0, 255, 102, 0.2);
+  border-top-color: var(--v-green);
+  border-radius: 50%;
+  animation: ldSpin 0.9s linear infinite;
+  box-shadow: 0 0 12px rgba(0, 255, 102, 0.4);
+}
+
+@keyframes ldSpin {
+  to { transform: rotate(360deg); }
+}
+
+.ld-text {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--v-green);
+  text-transform: uppercase;
+}
+
+/* ============== MUSIC PANEL ============== */
+.col-right { display: flex; flex-direction: column; gap: 18px; }
+
+.music-panel { padding: 20px; }
+
+.music-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.mi-icon svg {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.6));
+}
+
+.mi-text { flex: 1; }
+
+.track-title {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--v-white);
+  letter-spacing: 3px;
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+}
+
+.track-artist {
+  font-size: 11px;
+  color: var(--v-grey);
+  letter-spacing: 3px;
+  margin-top: 2px;
+}
+
+/* waveform */
+.waveform-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.wf-time {
+  font-size: 10px;
+  color: var(--v-grey);
+  letter-spacing: 1px;
+  min-width: 36px;
+}
+
+.waveform {
+  flex: 1;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  border-radius: 3px;
+  padding: 4px 6px;
+  overflow: hidden;
+}
+
+.wf-bar {
+  flex: 1;
+  background: var(--v-green-dim);
+  border-radius: 1px;
+  transition: background 0.15s, height 0.15s;
+  min-height: 4px;
+}
+
+.wf-bar.played {
+  background: var(--v-green);
+  box-shadow: 0 0 4px var(--v-green);
+}
+
+/* controls */
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ctrl-btn {
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  color: var(--v-grey);
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.ctrl-btn:hover {
+  border-color: var(--v-green);
+  color: var(--v-green);
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+}
+
+.ctrl-play {
+  width: 48px; height: 48px;
+  border-color: var(--v-green);
+  color: var(--v-green);
+  font-size: 16px;
+  box-shadow: 0 0 12px rgba(0, 255, 102, 0.4);
+}
+
+.ctrl-play:hover {
+  background: var(--v-green);
+  color: var(--v-black);
+}
+
+.ctrl-play.playing {
+  background: var(--v-green);
+  color: var(--v-black);
+  box-shadow: 0 0 20px var(--v-green);
+}
+
+/* volume slider — per user request */
+.volume-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 6px 10px;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  border-radius: 4px;
+  min-width: 130px;
+}
+
+.vol-icon {
+  font-size: 14px;
+  cursor: pointer;
+  filter: grayscale(0.3);
+}
+
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--v-green) 0%,
+    var(--v-green) var(--vol, 35%),
+    var(--v-edge) var(--vol, 35%),
+    var(--v-edge) 100%
+  );
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px; height: 12px;
+  background: var(--v-green);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--v-green);
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 12px; height: 12px;
+  background: var(--v-green);
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 0 6px var(--v-green);
+  cursor: pointer;
+}
+
+.vol-num {
+  font-size: 10px;
+  color: var(--v-green);
+  min-width: 22px;
+  text-align: right;
+}
+
+/* entering the system banner */
+.entering-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 18px;
+  background: var(--v-panel);
+  border: 1px solid var(--v-edge);
+  border-radius: 6px;
+  position: relative;
+}
+
+.entering-banner::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 14px; height: 14px;
+  border-top: 1px solid var(--v-green);
+  border-left: 1px solid var(--v-green);
+}
+
+.eb-text {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 6px;
+  color: var(--v-white);
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.4);
+}
+
+.eb-progress {
+  height: 3px;
+  background: var(--v-dark);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.eb-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--v-green-deep), var(--v-green));
+  box-shadow: 0 0 6px var(--v-green);
+  transition: width 0.4s ease;
+}
+
+.eb-status {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--v-green);
+  text-align: center;
+}
+
+body[data-state="no-key"] .eb-status,
+body[data-state="bad-key"] .eb-status,
+body[data-state="rate-limited"] .eb-status,
+body[data-state="network-down"] .eb-status {
+  color: var(--v-red);
+}
+
+/* ============== BOTTOM-RIGHT: OFFLINE/ONLINE TOGGLE (pill shape — different from square panels) ============== */
+.status-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  z-index: 50;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--v-panel);
+  border: 1px solid var(--v-edge);
+  border-radius: 30px; /* pill shape — distinct from square panels */
+  overflow: hidden;
+  padding: 4px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.st-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 22px;
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--v-grey-dim);
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.st-icon { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; }
+.st-icon svg { width: 100%; height: 100%; }
+
+.st-pill:hover { color: var(--v-grey); }
+
+.st-pill.active { color: var(--v-white); }
+
+.st-on.active {
+  background: linear-gradient(135deg, rgba(0, 255, 102, 0.18), rgba(0, 255, 102, 0.06));
+  box-shadow: 0 0 12px rgba(0, 255, 102, 0.4), inset 0 0 8px rgba(0, 255, 102, 0.15);
+}
+
+.st-off.active {
+  background: linear-gradient(135deg, rgba(255, 34, 68, 0.18), rgba(255, 34, 68, 0.06));
+  box-shadow: 0 0 12px rgba(255, 34, 68, 0.4);
+}
+
+.st-icon-diamond svg path {
+  filter: drop-shadow(0 0 6px var(--v-green));
+}
+
+.st-ping {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--v-green);
+  box-shadow: 0 0 6px var(--v-green);
+  animation: pingPulse 1.6s ease-out infinite;
+  margin-left: 2px;
+}
+
+@keyframes pingPulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ============== RESPONSIVE ============== */
+@media (max-width: 1100px) {
+  .main-grid {
+    grid-template-columns: 280px 1fr 320px;
+    gap: 18px;
+    padding: 18px 18px 110px 18px;
+  }
+  .profile-name { font-size: 32px; }
+}
+
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .col-left { order: 2; }
+  .col-center { order: 1; padding-top: 0; }
+  .col-right { order: 3; }
+
+  .figure-frame { max-width: 360px; margin: 0 auto; }
+
+  .top-bar {
+    grid-template-columns: 1fr 1fr;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .tb-center { display: none; }
+  .tb-right { justify-self: end; gap: 10px; }
+  .stats-group { gap: 10px; }
+  .stat { font-size: 11px; }
+
+  .status-toggle {
+    bottom: 16px;
+    right: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .top-bar {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 8px;
+  }
+  .tb-left, .tb-right { justify-self: center; }
+  .ghost-protocol { font-size: 10px; }
+
+  .main-grid { padding: 14px 12px 110px 12px; }
+
+  .profile-name { font-size: 28px; letter-spacing: 2px; }
+
+  .track-title { font-size: 16px; letter-spacing: 2px; }
+
+  .controls-row { justify-content: center; }
+  .volume-wrap { margin-left: 0; width: 100%; }
+
+  .status-toggle {
+    bottom: 12px;
+    right: 12px;
+    padding: 3px;
+  }
+  .st-pill { padding: 5px 10px; font-size: 9px; letter-spacing: 1px; }
+  .st-icon { width: 12px; height: 12px; }
+
+  .eb-text { font-size: 12px; letter-spacing: 4px; }
+}
+
+@media (max-width: 400px) {
+  .stats-group { display: none; }
+  .timestamp { display: none; }
+}
+
+/* ============================================================
+   v2 ADDITIONS — animated profile, 3D bot in chat, upload UI,
+   more radio animation, live stats
+   ============================================================ */
+
+/* ============== ANIMATED PROFILE / DNA ============== */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.profile-head-text { flex: 1; }
+
+.dna-helix {
+  width: 48px;
+  height: 64px;
+  flex-shrink: 0;
+  position: relative;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 102, 0.5));
+}
+
+.dna-helix svg {
+  width: 100%;
+  height: 100%;
+}
+
+.dna-strand {
+  animation: dnaWave 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.dna-strand-2 {
+  animation-delay: -1.5s;
+  animation-direction: reverse;
+}
+
+@keyframes dnaWave {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-2px) scaleY(1.05); }
+}
+
+.dna-rung {
+  animation: rungPulse 2s ease-in-out infinite;
+}
+.dna-rung-2 { animation-delay: 0.25s; }
+.dna-rung-3 { animation-delay: 0.5s; }
+.dna-rung-4 { animation-delay: 0.75s; }
+
+@keyframes rungPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.9; }
+}
+
+.dna-node {
+  animation: nodeBlink 1.6s ease-in-out infinite;
+  transform-origin: center;
+}
+.dna-node:nth-child(7) { animation-delay: 0s; }
+.dna-node:nth-child(8) { animation-delay: 0.2s; }
+.dna-node:nth-child(9) { animation-delay: 0.4s; }
+.dna-node:nth-child(10) { animation-delay: 0.6s; }
+.dna-node:nth-child(11) { animation-delay: 0.8s; }
+.dna-node:nth-child(12) { animation-delay: 1.0s; }
+
+@keyframes nodeBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* pulsing level value */
+.profile-level {
+  position: relative;
+}
+
+.pl-pulse {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--v-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--v-green);
+  margin-left: 8px;
+  vertical-align: middle;
+  animation: plPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes plPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.4; }
+}
+
+#pl-val {
+  transition: color 0.3s, text-shadow 0.3s;
+}
+
+#pl_val.gained,
+#pl-val.gained {
+  color: var(--v-green-bright);
+  text-shadow: 0 0 12px var(--v-green);
+  animation: plFlash 0.6s ease-out;
+}
+
+@keyframes plFlash {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* live stats meta cells */
+.profile-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--v-edge);
+}
+
+.pm-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  border-radius: 3px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pm-cell::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--v-green), transparent);
+  animation: pmScan 3s linear infinite;
+  opacity: 0.4;
+}
+
+@keyframes pmScan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.pm-lbl {
+  font-size: 9px;
+  color: var(--v-grey);
+  letter-spacing: 2px;
+}
+
+.pm-val {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--v-white);
+  letter-spacing: 1px;
+}
+
+/* exp fill grows live */
+#exp-fill {
+  transition: width 0.6s ease;
+}
+
+/* ============== 3D BOT VIEW in chat panel ============== */
+.chat-panel {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.bot-view {
+  position: relative;
+  flex: 1;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 4px;
+  background: radial-gradient(ellipse at center, rgba(0, 255, 102, 0.04) 0%, transparent 70%);
+  transition: transform 0.4s, opacity 0.3s;
+}
+
+.bot-view:hover {
+  background: radial-gradient(ellipse at center, rgba(0, 255, 102, 0.08) 0%, transparent 70%);
+}
+
+.bot-view:hover .bot-hint {
+  opacity: 1;
+  letter-spacing: 6px;
+}
+
+#bot-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.bot-view.hidden,
+.chat-view.hidden {
+  display: none;
+}
+
+.chat-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 280px;
+  animation: chatExpand 0.5s ease;
+}
+
+@keyframes chatExpand {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* orbit rings around bot */
+.bot-orbit {
+  position: absolute;
+  top: 50%; left: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 255, 102, 0.25);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.bot-orbit-1 {
+  width: 180px; height: 180px;
+  animation: botSpin 12s linear infinite;
+  border-style: dashed;
+}
+
+.bot-orbit-2 {
+  width: 240px; height: 240px;
+  animation: botSpin 18s linear infinite reverse;
+  border-color: rgba(0, 255, 102, 0.12);
+}
+
+@keyframes botSpin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.bot-tag {
+  position: absolute;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--v-green);
+  text-shadow: 0 0 6px var(--v-green);
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: botTagFloat 4s ease-in-out infinite;
+}
+
+.bt-tag-1 { top: 18%; left: 14%; }
+.bt-tag-2 { bottom: 18%; right: 14%; animation-delay: 2s; }
+
+@keyframes botTagFloat {
+  0%, 100% { opacity: 0.6; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-4px); }
+}
+
+.bot-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--v-green);
+  text-shadow: 0 0 6px var(--v-green);
+  text-transform: uppercase;
+  opacity: 0.7;
+  transition: opacity 0.3s, letter-spacing 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.bot-pulse {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 80px; height: 80px;
+  border: 1px solid var(--v-green);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: botPulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes botPulse {
+  0% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.5); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
+}
+
+/* chat back button */
+.chat-back {
+  background: transparent;
+  border: 1px solid var(--v-edge);
+  color: var(--v-green);
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-bottom: 10px;
+  align-self: flex-start;
+  transition: all 0.2s;
+}
+
+.chat-back:hover {
+  border-color: var(--v-green);
+  background: rgba(0, 255, 102, 0.08);
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.3);
+}
+
+/* ============== MUSIC PANEL — extra animations + upload ============== */
+.music-info {
+  position: relative;
+}
+
+.mi-icon-spin svg {
+  animation: miSpin 14s linear infinite;
+}
+
+@keyframes miSpin {
+  to { transform: rotate(360deg); }
+}
+
+.mi-pulse {
+  position: absolute;
+  top: 50%; left: 12px;
+  width: 42px; height: 42px;
+  border: 1px solid var(--v-green);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  animation: miPulse 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes miPulse {
+  0% { opacity: 0.7; transform: translateY(-50%) scale(0.7); }
+  100% { opacity: 0; transform: translateY(-50%) scale(1.8); }
+}
+
+/* pulsing rings around waveform */
+.wf-rings {
+  position: relative;
+  height: 0;
+  pointer-events: none;
+}
+
+.wf-ring {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  width: 8px; height: 8px;
+  border: 1px solid var(--v-green);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  animation: wfRing 3s ease-out infinite;
+}
+
+.wf-ring-2 { animation-delay: 1.5s; }
+
+@keyframes wfRing {
+  0% { opacity: 0.8; transform: translateX(-50%) scale(0.5); }
+  100% { opacity: 0; transform: translateX(-50%) scale(4); }
+}
+
+/* playlist */
+.playlist {
+  margin: 12px 0 10px;
+  max-height: 100px;
+  overflow-y: auto;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  border-radius: 3px;
+  padding: 4px;
+}
+
+.playlist::-webkit-scrollbar { width: 4px; }
+.playlist::-webkit-scrollbar-thumb { background: var(--v-green-dim); }
+
+.pl-empty {
+  font-size: 9px;
+  color: var(--v-grey-dim);
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 8px 4px;
+}
+
+.pl-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--v-grey);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pl-track:hover {
+  background: rgba(0, 255, 102, 0.06);
+  color: var(--v-white);
+}
+
+.pl-track.playing {
+  background: rgba(0, 255, 102, 0.12);
+  color: var(--v-green);
+  text-shadow: 0 0 6px rgba(0, 255, 102, 0.5);
+}
+
+.pl-track .pl-num {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: var(--v-green-dim);
+  min-width: 18px;
+  font-size: 10px;
+}
+
+.pl-track.playing .pl-num { color: var(--v-green); }
+
+.pl-track .pl-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pl-track .pl-eq {
+  display: inline-flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 12px;
+  width: 14px;
+}
+
+.pl-track .pl-eq span {
+  flex: 1;
+  background: var(--v-green);
+  border-radius: 1px;
+  animation: plEq 0.8s ease-in-out infinite;
+}
+
+.pl-track .pl-eq span:nth-child(1) { animation-delay: 0s; height: 50%; }
+.pl-track .pl-eq span:nth-child(2) { animation-delay: 0.2s; height: 100%; }
+.pl-track .pl-eq span:nth-child(3) { animation-delay: 0.4s; height: 70%; }
+
+@keyframes plEq {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.pl-track:not(.playing) .pl-eq { display: none; }
+
+/* upload row */
+.upload-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.upload-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--v-dark);
+  border: 1px dashed var(--v-green-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--v-green);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.upload-btn:hover {
+  border-color: var(--v-green);
+  border-style: solid;
+  background: rgba(0, 255, 102, 0.08);
+  box-shadow: 0 0 12px rgba(0, 255, 102, 0.3);
+}
+
+.up-icon {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--v-green);
+}
+
+/* ============== LIVE STATS (top bar) ============== */
+.stat-num {
+  display: inline-block;
+  transition: color 0.3s, text-shadow 0.3s;
+}
+
+.stat-num.bump {
+  color: var(--v-green-bright);
+  text-shadow: 0 0 8px var(--v-green);
+  animation: statBump 0.6s ease;
+}
+
+@keyframes statBump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* ============== Responsive tweaks for new elements ============== */
+@media (max-width: 900px) {
+  .bot-view { min-height: 240px; }
+  .bot-orbit-1 { width: 140px; height: 140px; }
+  .bot-orbit-2 { width: 200px; height: 200px; }
+  .profile-meta { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .pm-val { font-size: 12px; }
+}
+
+@media (max-width: 600px) {
+  .bot-view { min-height: 220px; }
+  .bot-orbit-1 { width: 120px; height: 120px; }
+  .bot-orbit-2 { width: 170px; height: 170px; }
+  .dna-helix { width: 40px; height: 56px; }
+  .profile-name { font-size: 22px; }
+  .upload-btn { padding: 6px 10px; font-size: 10px; letter-spacing: 2px; }
+  .pl-track { font-size: 10px; padding: 5px 6px; }
+  .pm-lbl { font-size: 8px; }
+  .pm-val { font-size: 11px; }
+  .controls-row { gap: 6px; }
+  .ctrl-btn { width: 32px; height: 32px; font-size: 12px; }
+  .ctrl-play { width: 40px; height: 40px; }
+  .volume-wrap { min-width: 100px; padding: 4px 8px; }
+}
+
+@media (max-width: 400px) {
+  .bot-view { min-height: 200px; }
+  .bot-hint { font-size: 9px; letter-spacing: 2px; }
+  .profile-meta { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ============================================================
+   VENOM PRO — 10/10 upgrades (holo sphere, neural pulse, boot log)
+   ============================================================ */
+
+/* Holographic data sphere canvas (center column) */
+#holo-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Neural pulse canvas (profile panel) */
+.neural-pulse {
+  width: 48px;
+  height: 64px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+#neural-canvas {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 102, 0.5));
+}
+
+/* Boot log (intro page) */
+.boot-log {
+  margin-top: 20px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--v-green-dim);
+  text-align: center;
+  min-height: 80px;
+}
+
+.boot-log .boot-line {
+  line-height: 1.8;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* Make figure-frame position relative for holo-canvas absolute positioning */
+.figure-frame {
+  position: relative;
+}
+
+/* Ensure diamond-border SVG sits above holo-canvas */
+.diamond-border {
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================
+   VENOM RADIO PRO — Stream features (10/10)
+   ============================================================ */
+
+/* Stream status bar (LIVE/OFFLINE + listener count) */
+.stream-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.ss-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ss-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.ss-dot.ss-live {
+  background: #00ff66;
+  box-shadow: 0 0 8px #00ff66;
+  animation: ssLivePulse 1.5s ease-in-out infinite;
+}
+
+.ss-dot.ss-connecting {
+  background: #ffaa00;
+  box-shadow: 0 0 8px #ffaa00;
+  animation: ssConnPulse 0.6s ease-in-out infinite;
+}
+
+.ss-dot.ss-offline {
+  background: var(--v-red);
+  box-shadow: 0 0 4px var(--v-red);
+  opacity: 0.5;
+}
+
+@keyframes ssLivePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+@keyframes ssConnPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.ss-label.ss-live { color: #00ff66; }
+.ss-label.ss-connecting { color: #ffaa00; }
+.ss-label.ss-offline { color: var(--v-grey-dim); }
+
+.ss-listeners {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--v-green);
+  letter-spacing: 1px;
+}
+
+.sl-icon { font-size: 12px; }
+
+/* Album art display */
+.album-art-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  border-radius: 4px;
+}
+
+.album-art {
+  width: 60px; height: 60px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--v-black);
+  border: 1px solid var(--v-edge);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.album-art img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.aa-placeholder {
+  font-size: 8px;
+  color: var(--v-grey-dim);
+  letter-spacing: 1px;
+}
+
+.now-playing-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.np-label {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--v-green-dim);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.np-title {
+  font-size: 13px;
+  color: var(--v-white);
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 6px rgba(0, 255, 102, 0.3);
+}
+
+.np-artist {
+  font-size: 11px;
+  color: var(--v-grey);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* Stream URL input row */
+.stream-input-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.stream-url-input {
+  flex: 1;
+  background: var(--v-dark);
+  border: 1px solid var(--v-edge);
+  color: var(--v-white);
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 10px;
+  border-radius: 4px;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  min-width: 0;
+}
+
+.stream-url-input:focus {
+  border-color: var(--v-green);
+  box-shadow: 0 0 0 1px var(--v-green), inset 0 0 8px rgba(0, 255, 102, 0.1);
+}
+
+.stream-url-input::placeholder {
+  color: var(--v-grey-dim);
+}
+
+.stream-connect-btn {
+  background: var(--v-dark);
+  border: 1px solid var(--v-green);
+  color: var(--v-green);
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.stream-connect-btn:hover {
+  background: var(--v-green);
+  color: var(--v-black);
+  box-shadow: 0 0 12px var(--v-green);
+}
+
+.stream-connect-btn.connected {
+  background: var(--v-red);
+  border-color: var(--v-red);
+  color: var(--v-white);
+}
+
+/* ============================================================
+   VENOM CUSTOM CURSOR (GPU-accelerated, no lag)
+   ============================================================ */
+
+/* Hide the default cursor on desktop (keep it on mobile/touch) */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+}
+
+.venom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 99999;
+  will-change: transform;  /* GPU acceleration — prevents lag */
+  transform: translate3d(-50%, -50%, 0);
+  transition: width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+}
+
+.venom-cursor::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #00ff66;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px #00ff66, 0 0 20px rgba(0, 255, 102, 0.5);
+  transition: all 0.15s ease;
+}
+
+.venom-cursor::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #00ff66;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.4;
+  transition: all 0.3s ease;
+  animation: venomCursorPulse 2s ease-in-out infinite;
+}
+
+@keyframes venomCursorPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
+  50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.1; }
+}
+
+/* Hover state — when over clickable elements */
+.venom-cursor.hovering::before {
+  width: 4px;
+  height: 4px;
+  background: #2cffa0;
+  box-shadow: 0 0 15px #2cffa0, 0 0 30px rgba(167, 139, 250, 0.6);
+}
+
+.venom-cursor.hovering::after {
+  width: 40px;
+  height: 40px;
+  border-color: #2cffa0;
+  opacity: 0.6;
+  border-width: 2px;
+}
+
+/* Click state */
+.venom-cursor.clicking::after {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+  border-width: 2px;
+}
+
+/* Hide cursor on text inputs (so the I-beam shows) */
+input, textarea {
+  cursor: text !important;
+}
+.venom-cursor.typing {
+  opacity: 0;
+}
+
+/* ============================================================
+   VENOM SECURITY — CSS-level protection
+   ============================================================ */
+
+/* Prevent text selection on everything except inputs */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none; /* iOS long-press */
+}
+
+/* Allow selection in inputs and textareas */
+input, textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Prevent image dragging */
+img {
+  -webkit-user-drag: none;
+  pointer-events: none; /* prevents right-click save on images */
+}
+
+/* But allow clicks on interactive elements */
+button, a, input, .ctrl-btn, .upload-btn, .stream-connect-btn, 
+.enter-btn, .st-pill, .pl-track, .bot-view, [role="switch"],
+.panel-x, .chat-back {
+  pointer-events: auto;
+}
+
+/* Allow pointer events on canvas (for 3D interaction) */
+canvas {
+  pointer-events: auto;
+}
+
+/* ============================================================
+   X BUTTON FIX — Ensure always clickable
+   ============================================================ */
+.panel-x {
+  z-index: 100 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: absolute !important;
+}
+
+/* When chat view is open, make the X button glow green */
+#chat-panel:has(#chat-view:not(.hidden)) .panel-x,
+#chat-panel .panel-x {
+  color: #00ff66 !important;
+  text-shadow: 0 0 8px #00ff66 !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+}

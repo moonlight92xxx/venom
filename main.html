@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VENOM // ENTERING THE SYSTEM</title>
+<meta name="groq-proxy" content="http://localhost:8787">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css" />
+</head>
+<body data-state="connecting">
+
+  <!-- ============== BACKGROUND ============== -->
+  <div class="bg-grid"></div>
+  <div class="bg-vines">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- left tendrils -->
+      <path d="M0,200 Q150,180 220,260 T180,440 Q120,520 40,560" stroke="#1a0a2e" stroke-width="3" fill="none" opacity="0.6"/>
+      <path d="M0,400 Q120,420 180,500 T140,680" stroke="#1a0a2e" stroke-width="2" fill="none" opacity="0.5"/>
+      <path d="M0,640 Q90,660 160,720 T120,880" stroke="#1a0a2e" stroke-width="2.5" fill="none" opacity="0.55"/>
+      <path d="M0,820 Q80,840 140,900" stroke="#1a0a2e" stroke-width="2" fill="none" opacity="0.4"/>
+      <!-- right tendrils -->
+      <path d="M1920,180 Q1780,200 1720,280 T1760,460 Q1820,540 1900,580" stroke="#1a0a2e" stroke-width="3" fill="none" opacity="0.6"/>
+      <path d="M1920,420 Q1800,440 1740,520 T1780,700" stroke="#1a0a2e" stroke-width="2" fill="none" opacity="0.5"/>
+      <path d="M1920,660 Q1830,680 1760,740 T1800,900" stroke="#1a0a2e" stroke-width="2.5" fill="none" opacity="0.55"/>
+      <!-- green glow accents on vines -->
+      <circle cx="180" cy="440" r="2" fill="#00ff66" opacity="0.7"/>
+      <circle cx="140" cy="680" r="1.5" fill="#00ff66" opacity="0.6"/>
+      <circle cx="1760" cy="460" r="2" fill="#00ff66" opacity="0.7"/>
+      <circle cx="1800" cy="900" r="1.5" fill="#00ff66" opacity="0.6"/>
+    </svg>
+  </div>
+  <div class="bg-noise"></div>
+  <div class="bg-scan"></div>
+
+  <!-- ============== TOP BAR ============== -->
+  <header class="top-bar">
+    <div class="tb-left">
+      <div class="ghost-protocol">
+        <span class="gp-dot"></span>
+        <span class="gp-text">VENOM PROTOCOL</span>
+      </div>
+    </div>
+    <div class="tb-center">
+      <div class="diamond-logo">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2 L38 20 L20 38 L2 20 Z" stroke="#00ff66" stroke-width="2" fill="none"/>
+          <path d="M20 8 L32 20 L20 32 L8 20 Z" stroke="#00ff66" stroke-width="1" fill="none" opacity="0.5"/>
+          <circle cx="20" cy="20" r="3" fill="#00ff66"/>
+        </svg>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="timestamp" id="topbar-time">08:13:2024</div>
+      <div class="stats-group">
+        <div class="stat"><span class="stat-num">108</span><span class="stat-arrow">▲</span></div>
+        <div class="stat"><span class="stat-num">8.88K</span><span class="stat-arrow">▲</span></div>
+        <div class="stat"><span class="stat-num">100%</span><span class="stat-dot"></span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============== MAIN GRID ============== -->
+  <main class="main-grid">
+
+    <!-- ====== LEFT COLUMN: PROFILE + CHAT ====== -->
+    <section class="col-left">
+
+      <!-- PROFILE / DNA — animated, gains EXP with usage -->
+      <div class="panel profile-panel">
+        <div class="panel-label">PROFILE / DNA</div>
+        <div class="panel-x" aria-label="close">✕</div>
+        <div class="profile-head">
+          <div class="profile-head-text">
+            <h2 class="profile-name">VENOM</h2>
+            <p class="profile-sub">Digital Venom / Terminal Entity</p>
+          </div>
+          <!-- neural pulse visualization (10/10 — replaces DNA helix) -->
+          <div class="neural-pulse">
+            <canvas id="neural-canvas" width="48" height="64"></canvas>
+          </div>
+        </div>
+        <div class="profile-level">
+          <span class="pl-lbl">LEVEL</span>
+          <span class="pl-val" id="pl-val">7.777</span>
+          <span class="pl-pulse"></span>
+        </div>
+        <div class="profile-exp">
+          <span class="exp-lbl">EXP</span>
+          <span class="exp-val" id="exp-val">88.888 / 99.999</span>
+          <div class="exp-bar"><div class="exp-fill" id="exp-fill"></div></div>
+        </div>
+        <div class="profile-meta">
+          <div class="pm-cell"><span class="pm-lbl">AI LOAD</span><span class="pm-val" id="pm-aiload">0%</span></div>
+          <div class="pm-cell"><span class="pm-lbl">LATENCY</span><span class="pm-val" id="pm-latency">0ms</span></div>
+          <div class="pm-cell"><span class="pm-lbl">UPTIME</span><span class="pm-val" id="pm-uptime">0s</span></div>
+        </div>
+      </div>
+
+      <!-- VENOM CHAT — contains a 3D animated VENOM cube that expands into the chat on click -->
+      <div class="panel chat-panel" id="chat-panel">
+        <div class="panel-label">VENOM CHAT / <span id="chat-state-label">SECURE</span></div>
+        <div class="panel-x" aria-label="close">✕</div>
+
+        <!-- BOT VIEW (default): 3D animated VENOM cube -->
+        <div class="bot-view" id="bot-view">
+          <canvas id="bot-canvas"></canvas>
+          <div class="bot-orbit bot-orbit-1"></div>
+          <div class="bot-orbit bot-orbit-2"></div>
+          <div class="bot-tag bt-tag-1">VENOM.AI</div>
+          <div class="bot-hint" id="bot-hint">CLICK THE VENOM</div>
+          <div class="bot-pulse"></div>
+        </div>
+
+        <!-- CHAT VIEW (after click): full chat interface -->
+        <div class="chat-view hidden" id="chat-view">
+          <button class="chat-back" id="chat-back" aria-label="back to venom">◀ VENOM</button>
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg msg-user">
+              <span class="msg-author">USER_4567:</span>
+              <span class="msg-text">Are you real?</span>
+              <span class="msg-time">08:13:2024</span>
+            </div>
+            <div class="msg msg-bot">
+              <span class="msg-author">VENOM:</span>
+              <span class="msg-text">Real is a construct. I am the echo.</span>
+              <span class="msg-time">08:13:2024</span>
+            </div>
+            <div class="msg msg-system" id="conn-msg">
+              <span class="msg-author">SYSTEM:</span>
+              <span class="msg-text" id="conn-msg-text">establishing neural link...</span>
+              <span class="msg-time" id="conn-msg-time">--:--:----</span>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input
+              type="text"
+              class="chat-input"
+              id="chat-input"
+              placeholder="Type a message..."
+              autocomplete="off"
+            />
+            <button class="chat-send" id="chat-send" aria-label="send">▸</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ====== CENTER COLUMN: HOLOGRAPHIC DATA SPHERE (10/10) ====== -->
+    <section class="col-center">
+      <div class="figure-frame" id="venom-figure">
+        <!-- 3D holographic data sphere canvas (replaces hooded figure) -->
+        <canvas id="holo-canvas"></canvas>
+
+        <!-- diamond frame overlay (kept for design continuity) -->
+        <svg class="diamond-border" viewBox="0 0 320 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00ff66" stop-opacity="0.9"/>
+              <stop offset="50%" stop-color="#00ff66" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#00ff66" stop-opacity="0.9"/>
+            </linearGradient>
+            <filter id="glowF" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <!-- Circular frame (like the radio) -->
+          <circle cx="160" cy="180" r="155" stroke="url(#diamondGrad)" stroke-width="3" fill="none" filter="url(#glowF)"/>
+          <circle cx="160" cy="180" r="140" stroke="#00ff66" stroke-width="1" fill="none" opacity="0.4"/>
+          <circle cx="160" cy="180" r="125" stroke="#00ff66" stroke-width="0.5" fill="none" opacity="0.2"/>
+          <!-- HUD corner brackets -->
+          <path d="M40 40 L60 40 L60 50 M40 40 L40 60" stroke="#00ff66" stroke-width="1" fill="none" opacity="0.6"/>
+          <path d="M280 40 L260 40 L260 50 M280 40 L280 60" stroke="#00ff66" stroke-width="1" fill="none" opacity="0.6"/>
+          <path d="M40 320 L60 320 L60 310 M40 320 L40 300" stroke="#00ff66" stroke-width="1" fill="none" opacity="0.6"/>
+          <path d="M280 320 L260 320 L260 310 M280 320 L280 300" stroke="#00ff66" stroke-width="1" fill="none" opacity="0.6"/>
+          <!-- Data labels -->
+          <text x="20" y="180" fill="#00ff66" font-family="Share Tech Mono" font-size="6" opacity="0.5">VENOM_CORE</text>
+          <text x="225" y="180" fill="#00ff66" font-family="Share Tech Mono" font-size="6" opacity="0.5">BOND_99.9%</text>
+        </svg>
+
+        <!-- "no signal" overlay (shown when groq key missing/failing) -->
+        <div class="no-signal-overlay" id="no-signal">
+          <div class="ns-bars">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="ns-text">NO SIGNAL</div>
+        </div>
+
+        <!-- loading spinner when connecting -->
+        <div class="loading-overlay" id="loading-overlay">
+          <div class="ld-ring"></div>
+          <div class="ld-text">SYNCING...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== RIGHT COLUMN: MUSIC PLAYER ====== -->
+    <section class="col-right">
+      <div class="panel music-panel">
+        <div class="panel-label">RADIO / SIGNAL</div>
+        <div class="music-info">
+          <div class="mi-icon mi-icon-spin">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 20 Q8 8 20 8 Q32 8 32 20 Q32 32 20 32 Q8 32 8 20 Z"
+                    stroke="#00ff66" stroke-width="1.5" fill="none"/>
+              <circle cx="20" cy="20" r="3" fill="#00ff66"/>
+              <path d="M14 14 L17 17 M26 14 L23 17 M14 26 L17 23 M26 26 L23 23"
+                    stroke="#00ff66" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="mi-text">
+            <div class="track-title" id="track-title">NO STREAM</div>
+            <div class="track-artist" id="track-artist">CONNECT A STREAM BELOW</div>
+          </div>
+          <div class="mi-pulse"></div>
+        </div>
+
+        <!-- LIVE stream status + listener count (10/10 radio pro) -->
+        <div class="stream-status-bar">
+          <div class="ss-status" id="stream-status">
+            <span class="ss-dot ss-offline"></span>
+            <span class="ss-label">OFFLINE</span>
+          </div>
+          <div class="ss-listeners" id="stream-listeners">
+            <span class="sl-icon">👥</span>
+            <span class="sl-count">0</span> listeners
+          </div>
+        </div>
+
+        <!-- Album art display (10/10 — fetched from iTunes API) -->
+        <div class="album-art-row">
+          <div class="album-art" id="album-art">
+            <div class="aa-placeholder">NO ART</div>
+          </div>
+          <div class="now-playing-info">
+            <div class="np-label">NOW PLAYING</div>
+            <div class="np-title" id="np-title">—</div>
+            <div class="np-artist" id="np-artist">—</div>
+          </div>
+        </div>
+
+        <!-- pulsing rings around the waveform -->
+        <div class="wf-rings">
+          <div class="wf-ring wf-ring-1"></div>
+          <div class="wf-ring wf-ring-2"></div>
+        </div>
+
+        <div class="waveform-row">
+          <span class="wf-time" id="wf-cur">LIVE</span>
+          <div class="waveform" id="waveform">
+            <!-- bars populated by JS -->
+          </div>
+          <span class="wf-time" id="wf-tot">∞</span>
+        </div>
+
+        <!-- Stream URL input + file upload (dual mode) -->
+        <div class="stream-input-row">
+          <input
+            type="text"
+            class="stream-url-input"
+            id="stream-url"
+            placeholder="Paste radio stream URL (http://server:port/stream)"
+            autocomplete="off"
+          />
+          <button class="stream-connect-btn" id="stream-connect">CONNECT</button>
+        </div>
+
+        <!-- playlist (uploaded songs appear here — for file mode) -->
+        <div class="playlist" id="playlist">
+          <div class="pl-empty" id="pl-empty">STREAM MODE — OR UPLOAD FILES BELOW</div>
+        </div>
+
+        <!-- upload row (kept for file mode) -->
+        <div class="upload-row">
+          <label class="upload-btn" for="song-upload" aria-label="upload songs">
+            <span class="up-icon">＋</span>
+            <span class="up-text">UPLOAD FILES</span>
+            <input
+              type="file"
+              id="song-upload"
+              accept="audio/*,.mp3,.wav,.ogg,.m4a"
+              multiple
+              hidden
+            />
+          </label>
+        </div>
+
+        <div class="controls-row">
+          <button class="ctrl-btn" id="prev-btn" aria-label="previous">⏮</button>
+          <button class="ctrl-btn ctrl-play" id="play-btn" aria-label="play">▶</button>
+          <button class="ctrl-btn" id="next-btn" aria-label="next">⏭</button>
+
+          <!-- volume slider -->
+          <div class="volume-wrap">
+            <span class="vol-icon" id="vol-icon">🔊</span>
+            <input
+              type="range"
+              class="volume-slider"
+              id="volume-slider"
+              min="0" max="100" value="50"
+              aria-label="volume"
+            />
+            <span class="vol-num" id="vol-num">50</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- "ENTERING THE SYSTEM" sub-banner -->
+      <div class="entering-banner" id="entering-banner">
+        <span class="eb-text">ENTERING THE SYSTEM</span>
+        <div class="eb-progress"><div class="eb-bar" id="eb-bar"></div></div>
+        <span class="eb-status" id="eb-status">STANDBY</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============== BOTTOM-LEFT: (small chat status — already in chat panel above) ============== -->
+
+  <!-- ============== BOTTOM-RIGHT: ONLINE/OFFLINE status indicator (positions swapped per request) ============== -->
+  <div class="status-toggle" id="status-toggle" role="switch" aria-label="online/offline toggle">
+    <div class="st-pill st-on active" id="st-on" data-state="online">
+      <div class="st-icon st-icon-diamond">
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 2 L18 10 L10 18 L2 10 Z" fill="#00ff66" filter="drop-shadow(0 0 4px #00ff66)"/>
+        </svg>
+      </div>
+      <span class="st-label">ONLINE</span>
+      <span class="st-ping"></span>
+    </div>
+    <div class="st-pill st-off" id="st-off" data-state="offline">
+      <div class="st-icon">
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="10" cy="10" r="7" stroke="#666" stroke-width="1.5" fill="none"/>
+          <line x1="4" y1="16" x2="16" y2="4" stroke="#666" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="st-label">OFFLINE</span>
+    </div>
+  </div>
+
+  <!-- ============== Hidden audio element for uploaded songs ============== -->
+  <audio id="radio-audio" preload="auto"></audio>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/main.js"></script>
+
+<!-- ============================================================
+     VENOM SECURITY LAYER — Anti-copy, anti-save, anti-devtools
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // 1. Disable right-click context menu
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // 2. Disable text selection (except in inputs)
+  document.addEventListener('selectstart', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  // 3. Disable copy/cut/paste (except in inputs)
+  document.addEventListener('copy', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      return false;
+    }
+  });
+  document.addEventListener('cut', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  // 4. Disable drag and drop (prevents dragging images to save)
+  document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // 5. Disable image saving via long-press (mobile)
+  document.addEventListener('touchstart', function(e) {
+    if (e.target.tagName === 'IMG') {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // 6. Detect DevTools (basic detection — slows them down)
+  let devtoolsOpen = false;
+  const threshold = 200; // pixels
+  
+  setInterval(function() {
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    if (widthThreshold || heightThreshold) {
+      if (!devtoolsOpen) {
+        devtoolsOpen = true;
+        // Optional: redirect or show warning
+        document.body.style.opacity = '0.3';
+        setTimeout(function() { document.body.style.opacity = ''; }, 2000);
+      }
+    } else {
+      if (devtoolsOpen) {
+        devtoolsOpen = false;
+        document.body.style.opacity = '';
+      }
+    }
+  }, 1000);
+
+  // 7. Disable keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S)
+  document.addEventListener('keydown', function(e) {
+    // F12
+    if (e.keyCode === 123) {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+Shift+I (DevTools)
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+Shift+J (Console)
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+Shift+C (Element Inspector)
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+U (View Source)
+    if (e.ctrlKey && e.keyCode === 85) {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+S (Save Page)
+    if (e.ctrlKey && e.keyCode === 83) {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+A (Select All) — only block if not in input
+    if (e.ctrlKey && e.keyCode === 65) {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        return false;
+      }
+    }
+  });
+
+  // 8. Clear console periodically (makes inspection harder)
+  setInterval(function() {
+    try {
+      console.clear();
+    } catch(e) {}
+  }, 5000);
+
+  // 9. Disable view-source navigation
+  window.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.keyCode === 85) { // Ctrl+U
+      e.preventDefault();
+      window.location.href = 'about:blank';
+      return false;
+    }
+  });
+
+  console.log('%c╔══════════════════════════════════════════════════════════╗', 'color: #00ff66; font-size: 12px;');
+    console.log('%c║  © 2026 VELXT STUDIOS & AZUR. ALL RIGHTS RESERVED.     ║', 'color: #00ff66; font-size: 12px;');
+    console.log('%c║  Unauthorized copying, modification, or distribution     ║', 'color: #00ff66; font-size: 12px;');
+    console.log('%c║  of this software is strictly prohibited.               ║', 'color: #00ff66; font-size: 12px;');
+    console.log('%c║  LICENSED TO: VELXT STUDIOS & AZUR                      ║', 'color: #00ff66; font-size: 12px;');
+    console.log('%c╚══════════════════════════════════════════════════════════╝', 'color: #00ff66; font-size: 12px;');
+  console.log('%cViolators will be prosecuted to the full extent of the law.', 'color: #ff2244; font-size: 14px;');
+})();
+</script>
+
+</body>
+</html>
