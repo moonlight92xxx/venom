@@ -1728,7 +1728,7 @@ Keep replies under 60 words. Use no markdown.`;
   /* ============================================================
      TOP BAR TIME
      ============================================================ */
-  function tickTopBar() {
+  /*  function tickTopBar() {
     const el = document.getElementById('topbar-time');
     if (!el) return;
     const d = new Date();
@@ -1736,6 +1736,16 @@ Keep replies under 60 words. Use no markdown.`;
       String(d.getMonth() + 1).padStart(2, '0') + ':' +
       String(d.getDate()).padStart(2, '0') + ':' +
       d.getFullYear();
+  }  */
+
+ function tickTopBar() {
+    const el = document.getElementById('topbar-time');
+    if (!el) return;
+    const d = new Date();
+    el.textContent =
+      String(d.getHours()).padStart(2, '0') + ':' +
+      String(d.getMinutes()).padStart(2, '0') + ':' +
+      String(d.getSeconds()).padStart(2, '0');
   }
 
   /* ============================================================
