@@ -1996,7 +1996,8 @@ Keep replies under 60 words. Use no markdown.`;
     loadDefaultTracks();
 
     // intervals for live data
-    setInterval(tickTopBar, 60000);
+//    setInterval(tickTopBar, 60000); 
+     setInterval(tickTopBar, 1000);
     setInterval(tickUptime, 1000);
     setInterval(tickWaveform, 60);
     setInterval(tickTopStats, 4000);
