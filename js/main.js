@@ -1728,17 +1728,7 @@ Keep replies under 60 words. Use no markdown.`;
   /* ============================================================
      TOP BAR TIME
      ============================================================ */
-  /*  function tickTopBar() {
-    const el = document.getElementById('topbar-time');
-    if (!el) return;
-    const d = new Date();
-    el.textContent =
-      String(d.getMonth() + 1).padStart(2, '0') + ':' +
-      String(d.getDate()).padStart(2, '0') + ':' +
-      d.getFullYear();
-  }  */
-
- function tickTopBar() {
+  function tickTopBar() {
     const el = document.getElementById('topbar-time');
     if (!el) return;
     const d = new Date();
@@ -1996,8 +1986,7 @@ Keep replies under 60 words. Use no markdown.`;
     loadDefaultTracks();
 
     // intervals for live data
-//    setInterval(tickTopBar, 60000); 
-     setInterval(tickTopBar, 1000);
+    setInterval(tickTopBar, 1000);
     setInterval(tickUptime, 1000);
     setInterval(tickWaveform, 60);
     setInterval(tickTopStats, 4000);
