@@ -565,11 +565,17 @@ function initVenomIntro() {
   // Lower pixel ratio on mobile to save GPU
   renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
 
+  // ---- FRAME RATE CAP (saves battery + reduces mobile lag) ----
+  // Desktop: 60fps, Mobile: 30fps (still smooth for cinematic feel)
+  const targetFPS = isMobile ? 30 : 60;
+  const frameInterval = 1000 / targetFPS;
+  let lastRenderTime = 0;
+
   // ============================================================
   // GROUND GRID (Tron-style)
   // ============================================================
-  const gridSize = 4000;
-  const gridDivisions = 200;
+  const gridSize = isMobile ? 2000 : 4000;
+  const gridDivisions = isMobile ? 80 : 200;
   const grid = new THREE.GridHelper(gridSize, gridDivisions, 0x00ff66, 0x003311);
   grid.position.y = 0;
   grid.material.transparent = true;
@@ -586,7 +592,7 @@ function initVenomIntro() {
   // ============================================================
   // BUILDINGS (Procedural Cyberpunk City — expanded)
   // ============================================================
-  const buildingCount = isMobile ? 90 : (isLowPerf ? 150 : 240);
+  const buildingCount = isMobile ? 50 : (isLowPerf ? 150 : 240);
   const cityRange = 500;
   const canyonWidth = 28;
 
@@ -669,7 +675,7 @@ function initVenomIntro() {
   // FLYING TAXIS (Glowing orbs on curved paths)
   // ============================================================
   const taxis = [];
-  const taxiCount = isMobile ? 6 : (isLowPerf ? 10 : 16);
+  const taxiCount = isMobile ? 3 : (isLowPerf ? 10 : 16);
 
   for (let i = 0; i < taxiCount; i++) {
     const geo = new THREE.SphereGeometry(2, 8, 8);
@@ -712,7 +718,7 @@ function initVenomIntro() {
   // STARS (Visible when ascending)
   // ============================================================
   const starGeo = new THREE.BufferGeometry();
-  const starCount = isMobile ? 400 : (isLowPerf ? 700 : 1200);
+  const starCount = isMobile ? 200 : (isLowPerf ? 700 : 1200);
   const starPositions = new Float32Array(starCount * 3);
   for (let i = 0; i < starCount * 3; i += 3) {
     starPositions[i] = (Math.random() - 0.5) * 4000;
@@ -992,16 +998,31 @@ function initVenomIntro() {
     if (redirecting) return;
     redirecting = true;
     var flash = document.getElementById('flash');
+    var textEnter = document.querySelector('.text-enter');
+
     if (flash && typeof gsap !== 'undefined') {
+      // === CINEMATIC TRANSITION (3 stages) ===
+      // Stage 1: zoom the "ENTER" text toward viewer (300ms)
+      if (textEnter) {
+        gsap.to(textEnter, {
+          scale: 3.5,
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power2.in'
+        });
+      }
+      // Stage 2: green glow flash (fades in slower, with green tint)
+      flash.style.background = 'radial-gradient(circle at center, rgba(0,255,102,0.9) 0%, rgba(0,255,102,0.4) 40%, #000 100%)';
       gsap.to(flash, {
         opacity: 1,
-        duration: 0.4,
+        duration: 0.5,
+        ease: 'power2.in',
+        delay: 0.15,
         onComplete: goToMain
       });
-      // Safety net: if GSAP callback never fires, redirect after 1.2s anyway
-      setTimeout(goToMain, 1200);
+      // Stage 3 (safety net): if GSAP callback never fires, redirect after 1.5s
+      setTimeout(goToMain, 1500);
     } else {
-      // GSAP not available — just redirect immediately
       goToMain();
     }
   }
@@ -1133,8 +1154,16 @@ function initVenomIntro() {
   // ============================================================
   let frame = 0;
 
-  function animate() {
+  function animate(now) {
     requestAnimationFrame(animate);
+
+    // ---- FRAME RATE CAP ----
+    // Skip rendering if not enough time has passed (saves battery + GPU)
+    if (!now) now = performance.now();
+    const elapsed = now - lastRenderTime;
+    if (elapsed < frameInterval) return;
+    lastRenderTime = now - (elapsed % frameInterval);
+
     frame++;
 
     // ---- 360° LOOK-AROUND ----
@@ -1315,7 +1344,7 @@ function initVenomIntro() {
 
   // 8. Console branding (one-time, not spamming)
   console.log('%c╔══════════════════════════════════════════════════════════╗', 'color:#00ff66;font-size:12px;');
-  console.log('%c║  © 2026 vnom (1550576936)   ALL RIGHTS RESERVED.         ║', 'color:#00ff66;font-size:12px;');
+  console.log('%c║ © 2026 vnom (1550576936)   ALL RIGHTS RESERVED.          ║', 'color:#00ff66;font-size:12px;');
   console.log('%c║  Unauthorized copying, modification, or distribution       ║', 'color:#00ff66;font-size:12px;');
   console.log('%c║  of this software is strictly prohibited.                 ║', 'color:#00ff66;font-size:12px;');
   console.log('%c╚═══════════════════════════════════════════════════════════╝', 'color:#00ff66;font-size:12px;');
