@@ -71,6 +71,8 @@
     width: 100%;
     height: 100%;
     z-index: 1;
+    /* CRITICAL: allow vertical scrolling on mobile, disable browser gestures */
+    touch-action: pan-y;
   }
 
   /* ===================== SCROLL CONTAINER ===================== */
@@ -282,7 +284,7 @@
     box-shadow: 0 0 20px rgba(0, 255, 102, 0.4);
   }
 
-  /* ===================== LOOK HINT ===================== */
+  /* ===================== LOOK HINT (desktop only — hidden on mobile) ===================== */
   .look-hint {
     position: fixed;
     bottom: 24px;
@@ -307,6 +309,31 @@
     font-size: 9px;
     margin: 0 2px;
     background: rgba(0, 255, 102, 0.05);
+  }
+  /* Hide look-hint on mobile (touch devices can't use mouse/D key) */
+  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .look-hint { display: none !important; }
+  }
+  /* Mobile-only hint: two-finger drag */
+  .mobile-hint {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #00ff66;
+    opacity: 0.35;
+    text-transform: uppercase;
+    pointer-events: none;
+    text-align: center;
+    line-height: 1.6;
+  }
+  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .mobile-hint { display: block; }
   }
 
   /* ===================== PROGRESS BAR ===================== */
@@ -415,11 +442,17 @@
 
 <button class="skip-btn" id="skip-btn" aria-label="Skip intro">Skip Intro →</button>
 
-<!-- ===================== LOOK-AROUND HINT ===================== -->
+<!-- ===================== LOOK-AROUND HINT (desktop only) ===================== -->
 <div class="look-hint">
   <kbd>Drag</kbd> mouse to look around<br>
   Hold <kbd>D</kbd> for 360° spin<br>
   <kbd>Enter</kbd> to enter VENOM
+</div>
+
+<!-- ===================== MOBILE HINT (mobile only) ===================== -->
+<div class="mobile-hint">
+  Scroll to explore<br>
+  Two fingers to look around
 </div>
 
 <div class="progress-rail"><div class="progress-bar" id="progress-bar"></div></div>
@@ -901,40 +934,11 @@ function initVenomIntro() {
   });
 
   // ============================================================
-  // DEBUG STATUS — visible on-screen so we can see what's happening
+  // DEBUG STATUS — disabled in production (was for testing only)
   // ============================================================
-  var dbg = document.createElement('div');
-  dbg.id = 'debug-status';
-  dbg.style.cssText = 'position:fixed; bottom:24px; left:24px; z-index:9999; background:rgba(0,0,0,0.85); border:1px solid #00ff66; color:#00ff66; font-family:Share Tech Mono,monospace; font-size:11px; padding:10px 14px; max-width:340px; line-height:1.5; pointer-events:none; letter-spacing:1px;';
-  document.body.appendChild(dbg);
   function dbgLog(msg) {
-    console.log('[VENOM]', msg);
-    if (dbg) dbg.innerHTML += msg + '<br>';
-    if (dbg && dbg.children.length > 8) dbg.removeChild(dbg.firstChild);
-  }
-  dbgLog('intro loaded');
-  dbgLog('checking main.html...');
-
-  // Check if main.html exists in the same folder
-  // NOTE: fetch HEAD may fail on file:// protocol — that's OK, we catch it
-  var mainHtmlExists = false;
-  if (window.location.protocol === 'file:') {
-    // file:// protocol can't do fetch — assume main.html is there
-    dbgLog('file:// mode — assuming main.html present');
-    mainHtmlExists = true;
-  } else {
-    fetch('main.html', { method: 'HEAD' })
-      .then(function(r) {
-        mainHtmlExists = r.ok;
-        dbgLog('main.html: ' + (r.ok ? 'FOUND (' + r.status + ')' : 'MISSING (' + r.status + ')'));
-        if (!r.ok) {
-          dbgLog('⚠ main.html not found in this folder!');
-          dbgLog('Make sure main.html is next to index.html');
-        }
-      })
-      .catch(function(err) {
-        dbgLog('main.html check failed: ' + err.message);
-      });
+    // Silent — no on-screen debug box anymore
+    // console.log('[VENOM]', msg);
   }
 
   // ============================================================
@@ -942,7 +946,6 @@ function initVenomIntro() {
   // ============================================================
   document.getElementById('skip-btn').addEventListener('click', function(e) {
     e.preventDefault();
-    dbgLog('skip button clicked');
     triggerRedirect();
   });
 
@@ -951,12 +954,9 @@ function initVenomIntro() {
   // ============================================================
   let redirecting = false;
   function goToMain() {
-    dbgLog('redirecting to main.html...');
     try {
       window.location.href = 'main.html';
-    } catch (err) {
-      dbgLog('href failed: ' + err.message);
-    }
+    } catch (err) {}
     // Fallback 1: try assign
     setTimeout(function() {
       try { window.location.assign('main.html'); } catch (e) {}
@@ -974,13 +974,6 @@ function initVenomIntro() {
         a.click();
       } catch (e) {}
     }, 500);
-    // Fallback 4: if still here after 2s, show manual enter button
-    setTimeout(function() {
-      if (document.visibilityState === 'visible') {
-        dbgLog('⚠ redirect failed — showing manual button');
-        showManualEnter();
-      }
-    }, 2000);
   }
 
   function showManualEnter() {
@@ -998,22 +991,17 @@ function initVenomIntro() {
   function triggerRedirect() {
     if (redirecting) return;
     redirecting = true;
-    dbgLog('triggerRedirect fired');
     var flash = document.getElementById('flash');
     if (flash && typeof gsap !== 'undefined') {
-      dbgLog('flash animation starting');
       gsap.to(flash, {
         opacity: 1,
         duration: 0.4,
-        onComplete: function() {
-          dbgLog('flash complete → goToMain');
-          goToMain();
-        }
+        onComplete: goToMain
       });
       // Safety net: if GSAP callback never fires, redirect after 1.2s anyway
       setTimeout(goToMain, 1200);
     } else {
-      dbgLog('no gsap → direct goToMain');
+      // GSAP not available — just redirect immediately
       goToMain();
     }
   }
@@ -1023,116 +1011,122 @@ function initVenomIntro() {
     ScrollTrigger.create({
       trigger: ".scroll-container",
       start: "bottom bottom",
-      onEnter: function() {
-        dbgLog('scrolltrigger: bottom reached');
-        triggerRedirect();
-      }
+      onEnter: triggerRedirect
     });
-  } else {
-    dbgLog('ScrollTrigger not loaded');
   }
 
   // Manual scroll watcher (backup trigger — catches edge cases)
   window.addEventListener('scroll', function() {
     var scrollPct = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
     if (scrollPct > 0.985 && !redirecting) {
-      dbgLog('scroll watcher: ' + Math.round(scrollPct * 100) + '%');
       triggerRedirect();
     }
   });
 
   // ============================================================
-  // 360° CITY VIEW — mouse drag + D key (hold to look around)
+  // 360° CITY VIEW — Desktop: mouse drag + D key
+  //                Mobile: TWO-FINGER drag only (one finger = scroll)
   // ============================================================
   var lookState = {
-    // Yaw = left/right look, Pitch = up/down look (in radians)
-    yaw: 0,           // current target yaw offset
-    pitch: 0,         // current target pitch offset
-    curYaw: 0,        // smoothed yaw (eases toward target)
-    curPitch: 0,      // smoothed pitch
-    isDragging: false,
-    lastX: 0,
-    lastY: 0,
-    dKeyDown: false,
-    dAutoYaw: 0       // continuous auto-rotate while D held
+    yaw: 0, pitch: 0, curYaw: 0, curPitch: 0,
+    isDragging: false, lastX: 0, lastY: 0,
+    dKeyDown: false, dAutoYaw: 0
   };
 
-  var lookSensitivity = 0.004;   // mouse drag sensitivity
-  var dRotateSpeed = 0.012;      // radians per frame while D held
-  var maxPitch = Math.PI / 3;    // ±60° vertical
-  var maxYaw = Math.PI * 0.8;    // ~144° horizontal look-around
-  var easeFactor = 0.08;         // how fast camera eases to target look
+  var lookSensitivity = 0.004;
+  var dRotateSpeed = 0.012;
+  var maxPitch = Math.PI / 3;
+  var maxYaw = Math.PI * 0.8;
+  var easeFactor = 0.08;
 
-  // Mouse drag on canvas (or anywhere) to look around
-  canvas.addEventListener('mousedown', function(e) {
-    lookState.isDragging = true;
-    lookState.lastX = e.clientX;
-    lookState.lastY = e.clientY;
-    canvas.style.cursor = 'grabbing';
-  });
-  window.addEventListener('mouseup', function() {
-    lookState.isDragging = false;
-    canvas.style.cursor = 'grab';
-  });
-  window.addEventListener('mousemove', function(e) {
-    if (!lookState.isDragging) return;
-    var dx = e.clientX - lookState.lastX;
-    var dy = e.clientY - lookState.lastY;
-    lookState.lastX = e.clientX;
-    lookState.lastY = e.clientY;
-    lookState.yaw   -= dx * lookSensitivity;
-    lookState.pitch -= dy * lookSensitivity;
-    // Clamp
-    if (lookState.yaw > maxYaw) lookState.yaw = maxYaw;
-    if (lookState.yaw < -maxYaw) lookState.yaw = -maxYaw;
-    if (lookState.pitch > maxPitch) lookState.pitch = maxPitch;
-    if (lookState.pitch < -maxPitch) lookState.pitch = -maxPitch;
-  });
+  // Detect touch device
+  var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
-  // Touch drag (mobile)
-  canvas.addEventListener('touchstart', function(e) {
-    if (e.touches.length === 1) {
+  if (!isTouchDevice) {
+    // ===== DESKTOP: mouse drag to look around =====
+    canvas.addEventListener('mousedown', function(e) {
       lookState.isDragging = true;
-      lookState.lastX = e.touches[0].clientX;
-      lookState.lastY = e.touches[0].clientY;
-    }
-  }, { passive: true });
-  canvas.addEventListener('touchmove', function(e) {
-    if (!lookState.isDragging || e.touches.length !== 1) return;
-    var dx = e.touches[0].clientX - lookState.lastX;
-    var dy = e.touches[0].clientY - lookState.lastY;
-    lookState.lastX = e.touches[0].clientX;
-    lookState.lastY = e.touches[0].clientY;
-    lookState.yaw   -= dx * lookSensitivity;
-    lookState.pitch -= dy * lookSensitivity;
-    if (lookState.yaw > maxYaw) lookState.yaw = maxYaw;
-    if (lookState.yaw < -maxYaw) lookState.yaw = -maxYaw;
-    if (lookState.pitch > maxPitch) lookState.pitch = maxPitch;
-    if (lookState.pitch < -maxPitch) lookState.pitch = -maxPitch;
-  }, { passive: true });
-  canvas.addEventListener('touchend', function() {
-    lookState.isDragging = false;
-  }, { passive: true });
+      lookState.lastX = e.clientX;
+      lookState.lastY = e.clientY;
+      canvas.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mouseup', function() {
+      lookState.isDragging = false;
+      canvas.style.cursor = 'grab';
+    });
+    window.addEventListener('mousemove', function(e) {
+      if (!lookState.isDragging) return;
+      var dx = e.clientX - lookState.lastX;
+      var dy = e.clientY - lookState.lastY;
+      lookState.lastX = e.clientX;
+      lookState.lastY = e.clientY;
+      lookState.yaw   -= dx * lookSensitivity;
+      lookState.pitch -= dy * lookSensitivity;
+      if (lookState.yaw > maxYaw) lookState.yaw = maxYaw;
+      if (lookState.yaw < -maxYaw) lookState.yaw = -maxYaw;
+      if (lookState.pitch > maxPitch) lookState.pitch = maxPitch;
+      if (lookState.pitch < -maxPitch) lookState.pitch = -maxPitch;
+    });
+    canvas.style.cursor = 'grab';
+  } else {
+    // ===== MOBILE: TWO-FINGER drag to look around (one finger = scroll) =====
+    // Touch listeners are passive: true so they NEVER block scrolling.
+    canvas.addEventListener('touchstart', function(e) {
+      // Only activate look-around with exactly 2 fingers
+      if (e.touches.length === 2) {
+        lookState.isDragging = true;
+        lookState.lastX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        lookState.lastY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      } else {
+        // 1 finger (or 3+) — let the browser scroll normally
+        lookState.isDragging = false;
+      }
+    }, { passive: true });
+    canvas.addEventListener('touchmove', function(e) {
+      if (!lookState.isDragging) return;
+      if (e.touches.length !== 2) {
+        lookState.isDragging = false;
+        return;
+      }
+      var midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      var midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      var dx = midX - lookState.lastX;
+      var dy = midY - lookState.lastY;
+      lookState.lastX = midX;
+      lookState.lastY = midY;
+      // Two-finger sensitivity is slightly higher (more intentional)
+      lookState.yaw   -= dx * lookSensitivity * 1.5;
+      lookState.pitch -= dy * lookSensitivity * 1.5;
+      if (lookState.yaw > maxYaw) lookState.yaw = maxYaw;
+      if (lookState.yaw < -maxYaw) lookState.yaw = -maxYaw;
+      if (lookState.pitch > maxPitch) lookState.pitch = maxPitch;
+      if (lookState.pitch < -maxPitch) lookState.pitch = -maxPitch;
+      // DO NOT call preventDefault — we want scrolling to remain possible
+    }, { passive: true });
+    canvas.addEventListener('touchend', function() {
+      lookState.isDragging = false;
+    }, { passive: true });
+    canvas.style.cursor = 'default';
+  }
 
-  // D key = hold to auto-rotate (cinematic 360 spin)
-  window.addEventListener('keydown', function(e) {
-    if (e.key === 'd' || e.key === 'D') {
-      lookState.dKeyDown = true;
-    }
-    // Enter key also triggers redirect (useful at end of scroll)
-    if (e.key === 'Enter' && !redirecting) {
-      var scrollPct = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
-      if (scrollPct > 0.5) triggerRedirect();
-    }
-  });
-  window.addEventListener('keyup', function(e) {
-    if (e.key === 'd' || e.key === 'D') {
-      lookState.dKeyDown = false;
-    }
-  });
-
-  // Show a subtle hint when user hovers canvas (look-around mode available)
-  canvas.style.cursor = 'grab';
+  // D key = hold to auto-rotate (desktop only — no keyboard on mobile)
+  if (!isTouchDevice) {
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'd' || e.key === 'D') {
+        lookState.dKeyDown = true;
+      }
+      // Enter key triggers redirect
+      if (e.key === 'Enter' && !redirecting) {
+        var scrollPct = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+        if (scrollPct > 0.5) triggerRedirect();
+      }
+    });
+    window.addEventListener('keyup', function(e) {
+      if (e.key === 'd' || e.key === 'D') {
+        lookState.dKeyDown = false;
+      }
+    });
+  }
 
   // ============================================================
   // ANIMATION LOOP
