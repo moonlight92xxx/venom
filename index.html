@@ -3,75 +3,1262 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>VENOM // VENOMIC INIT</title>
+<title>VENOM // FIFTH ELEMENT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/venom.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    background: #000;
+    color: #00ff66;
+    font-family: 'Share Tech Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* ===================== LOADING SCREEN ===================== */
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 1s ease;
+  }
+  #loader.hidden { opacity: 0; pointer-events: none; }
+
+  .loader-text {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 10px;
+    color: #00ff66;
+    text-shadow: 0 0 20px #00ff66;
+    margin-bottom: 24px;
+  }
+  .loader-sub {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: #00ff66;
+    opacity: 0.5;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .loader-bar {
+    width: 240px;
+    height: 2px;
+    background: #1a1a1a;
+    overflow: hidden;
+  }
+  .loader-fill {
+    width: 0%;
+    height: 100%;
+    background: #00ff66;
+    box-shadow: 0 0 10px #00ff66;
+    animation: loadFill 3s ease forwards;
+  }
+  @keyframes loadFill { to { width: 100%; } }
+
+  /* ===================== 3D CANVAS ===================== */
+  #city-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    /* CRITICAL: allow vertical scrolling on mobile, disable browser gestures */
+    touch-action: pan-y;
+  }
+
+  /* ===================== SCROLL CONTAINER ===================== */
+  .scroll-container {
+    position: relative;
+    width: 100%;
+    height: 900vh;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* ===================== TEXT OVERLAYS ===================== */
+  .overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .text-welcome, .text-magic, .text-bond, .text-system, .text-enter {
+    position: absolute;
+    opacity: 0;
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  .text-welcome .sub {
+    font-size: clamp(13px, 2.5vw, 24px);
+    letter-spacing: 10px;
+    color: #00ff66;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0, 255, 102, 0.8);
+    margin-bottom: 12px;
+  }
+  .text-welcome .main {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(60px, 15vw, 220px);
+    letter-spacing: 14px;
+    color: #00ff66;
+    text-shadow:
+      0 0 30px rgba(0, 255, 102, 0.9),
+      0 0 80px rgba(0, 255, 102, 0.6),
+      0 0 140px rgba(0, 255, 102, 0.4);
+  }
+
+  .text-magic {
+    font-size: clamp(16px, 4vw, 42px);
+    letter-spacing: 8px;
+    color: #00ff66;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(0, 255, 102, 0.9);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+  }
+  .text-magic .small {
+    display: block;
+    font-size: clamp(10px, 1.8vw, 16px);
+    letter-spacing: 6px;
+    opacity: 0.6;
+    margin-top: 14px;
+    font-weight: 400;
+  }
+
+  .text-bond {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+  }
+  .text-bond .label {
+    font-size: clamp(11px, 2vw, 16px);
+    letter-spacing: 8px;
+    color: #00ff66;
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .text-bond .word {
+    font-size: clamp(50px, 12vw, 160px);
+    letter-spacing: 10px;
+    color: #00ff66;
+    text-transform: uppercase;
+    text-shadow:
+      0 0 30px rgba(0, 255, 102, 0.9),
+      0 0 80px rgba(0, 255, 102, 0.5);
+    font-weight: 900;
+  }
+  .text-bond .sub {
+    font-size: clamp(11px, 1.8vw, 16px);
+    letter-spacing: 6px;
+    color: #00ff66;
+    opacity: 0.5;
+    margin-top: 18px;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: 400;
+  }
+
+  .text-system {
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .text-system .label {
+    font-size: clamp(10px, 1.6vw, 14px);
+    letter-spacing: 8px;
+    color: #00ff66;
+    opacity: 0.5;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .text-system .word {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(36px, 8vw, 96px);
+    letter-spacing: 14px;
+    color: #00ff66;
+    text-transform: uppercase;
+    text-shadow:
+      0 0 25px rgba(0, 255, 102, 0.9),
+      0 0 60px rgba(0, 255, 102, 0.5);
+    font-weight: 900;
+  }
+
+  .text-enter {
+    font-family: 'Orbitron', sans-serif;
+  }
+  .text-enter .word {
+    font-size: clamp(28px, 6vw, 72px);
+    letter-spacing: 12px;
+    color: #00ff66;
+    text-transform: uppercase;
+    text-shadow:
+      0 0 25px rgba(0, 255, 102, 1),
+      0 0 60px rgba(0, 255, 102, 0.6);
+    font-weight: 900;
+    animation: enterPulse 1.6s ease-in-out infinite;
+  }
+  .text-enter .sub {
+    display: block;
+    margin-top: 18px;
+    font-size: clamp(10px, 1.6vw, 14px);
+    letter-spacing: 6px;
+    opacity: 0.6;
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+  }
+  @keyframes enterPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.05); }
+  }
+
+  /* ===================== SCROLL HINT ===================== */
+  .scroll-hint {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #00ff66;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px #00ff66;
+    animation: hintPulse 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .scroll-hint::after {
+    content: '▼';
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+  }
+  .scroll-hint.hidden {
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ===================== SKIP BUTTON ===================== */
+  .skip-btn {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+    background: transparent;
+    border: 1px solid rgba(0, 255, 102, 0.4);
+    color: #00ff66;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    pointer-events: auto;
+    opacity: 0.6;
+  }
+  .skip-btn:hover {
+    background: rgba(0, 255, 102, 0.1);
+    border-color: #00ff66;
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(0, 255, 102, 0.4);
+  }
+
+  /* ===================== LOOK HINT (desktop only — hidden on mobile) ===================== */
+  .look-hint {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 50;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #00ff66;
+    opacity: 0.4;
+    text-transform: uppercase;
+    pointer-events: none;
+    text-align: right;
+    line-height: 1.6;
+  }
+  .look-hint kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid rgba(0, 255, 102, 0.4);
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 9px;
+    margin: 0 2px;
+    background: rgba(0, 255, 102, 0.05);
+  }
+  /* Hide look-hint on mobile (touch devices can't use mouse/D key) */
+  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .look-hint { display: none !important; }
+  }
+  /* Mobile-only hint: two-finger drag */
+  .mobile-hint {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #00ff66;
+    opacity: 0.35;
+    text-transform: uppercase;
+    pointer-events: none;
+    text-align: center;
+    line-height: 1.6;
+  }
+  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .mobile-hint { display: block; }
+  }
+
+  /* ===================== PROGRESS BAR ===================== */
+  .progress-rail {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(0, 255, 102, 0.08);
+    z-index: 50;
+    pointer-events: none;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #00ff66;
+    box-shadow: 0 0 10px #00ff66;
+    transition: width 0.1s linear;
+  }
+
+  /* ===================== FLASH ===================== */
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* ===================== VIGNETTE ===================== */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.7) 90%,
+      rgba(0, 0, 0, 0.95) 100%
+    );
+  }
+
+  /* ===================== SCANLINES ===================== */
+  .scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 255, 102, 0.02) 0px,
+      rgba(0, 255, 102, 0.02) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: screen;
+  }
+
+  /* ===================== TOP-LEFT BRAND ===================== */
+  .brand {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .brand .diamond {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #00ff66;
+    transform: rotate(45deg);
+    margin-right: 10px;
+    vertical-align: middle;
+    box-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+  }
+  .brand .txt {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #00ff66;
+    text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+    vertical-align: middle;
+  }
+</style>
 </head>
-<body class="stage-intro">
+<body>
 
-  <!-- ===================== BACKGROUND LAYERS ===================== -->
-  <canvas id="bg-particles"></canvas>
-  <div class="vignette"></div>
-  <div class="scanlines"></div>
-  <div class="noise"></div>
+<!-- ===================== LOADING SCREEN ===================== -->
+<div id="loader">
+  <div class="loader-text">VENOM</div>
+  <div class="loader-sub">Initializing neural link</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
 
-  <!-- ===================== PHASE 1: FAST BOOT SEQUENCE (0 - 1.2s) ===================== -->
-  <div id="phase-typing" class="phase">
-    <div class="typing-wrap">
-      <div class="typing-prefix">&gt; venom.boot_</div>
-      <h1 id="typing-text" class="typing-text"></h1>
-      <span class="typing-caret">_</span>
-    </div>
-    <div class="boot-log" id="boot-log"></div>
+<!-- ===================== BRAND & UI ===================== -->
+<div class="brand">
+  <span class="diamond"></span>
+  <span class="txt">VENOM // FIFTH</span>
+</div>
+
+<button class="skip-btn" id="skip-btn" aria-label="Skip intro">Skip Intro →</button>
+
+<!-- ===================== LOOK-AROUND HINT (desktop only) ===================== -->
+<div class="look-hint">
+  <kbd>Drag</kbd> mouse to look around<br>
+  Hold <kbd>D</kbd> for 360° spin<br>
+  <kbd>Enter</kbd> to enter VENOM
+</div>
+
+<!-- ===================== MOBILE HINT (mobile only) ===================== -->
+<div class="mobile-hint">
+  Scroll to explore<br>
+  Two fingers to look around
+</div>
+
+<div class="progress-rail"><div class="progress-bar" id="progress-bar"></div></div>
+
+<!-- ===================== 3D CANVAS ===================== -->
+<canvas id="city-canvas"></canvas>
+
+<!-- ===================== VISUAL EFFECTS ===================== -->
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<!-- ===================== TEXT OVERLAYS ===================== -->
+<div class="overlay">
+  <div class="text-welcome">
+    <div class="sub">Welcome to the world of</div>
+    <div class="main">VENOM</div>
   </div>
-
-  <!-- ===================== PHASE 2: 3D VENOM OBJECT (after 2.2s) ===================== -->
-  <div id="phase-3d" class="phase hidden">
-    <canvas id="venom-canvas"></canvas>
-
-    <!-- floating data tags around venom -->
-    <div class="data-tag tag-1">VENOM_LV.7.777</div>
-    <div class="data-tag tag-2">BOND: 99.9%</div>
-    <div class="data-tag tag-3">HOST: DETECTED</div>
-    <div class="data-tag tag-4">NEURAL_LINK: ACTIVE</div>
-    <div class="ring-orbit ring-1"></div>
-    <div class="ring-orbit ring-2"></div>
-    <div class="ring-orbit ring-3"></div>
+  <div class="text-magic">
+    Here is where the magic begins
+    <span class="small">// signal acquired</span>
   </div>
-
-  <!-- ===================== PHASE 3: WELCOME + CLICK TO ENTER ===================== -->
-  <div id="phase-enter" class="phase hidden">
-    <h2 class="welcome-title">
-      <span class="wl-line1">The world of</span>
-      <span class="wl-line2 glitch" data-text="VENOM">VENOM</span>
-    </h2>
-    <button id="enter-btn" class="enter-btn" aria-label="Click to enter VENOM">
-      <span class="btn-bg"></span>
-      <span class="btn-text">CLICK TO ENTER</span>
-      <span class="btn-pulse"></span>
-    </button>
-    <div class="enter-hint">bond with the venom</div>
+  <div class="text-bond">
+    <div class="label">// bond initializing</div>
+    <div class="word">BOND</div>
+    <div class="sub">host detected — venom approaching</div>
   </div>
-
-  <!-- ===================== PHASE 4: PORTAL WARP TRANSITION (10/10) ===================== -->
-  <div id="phase-boom" class="phase hidden">
-    <canvas id="boom-canvas"></canvas>
-    <div id="boom-counter" class="boom-counter">+0</div>
-    <div class="boom-text">VENOM BONDED</div>
+  <div class="text-system">
+    <div class="label">// entering the system</div>
+    <div class="word">VENOM ONLINE</div>
   </div>
+  <div class="text-enter">
+    <div class="word">ENTER</div>
+    <span class="sub">// releasing control to host</span>
+  </div>
+</div>
 
-  <!-- audio: silent radio that primes the audio context -->
-  <audio id="radio-prime" loop preload="auto" crossorigin="anonymous">
-    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
-  </audio>
+<!-- ===================== SCROLL HINT ===================== -->
+<div class="scroll-hint" id="scroll-hint">Scroll to explore</div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="js/venom-intro.js"></script>
+<!-- ===================== FLASH ===================== -->
+<div class="flash" id="flash"></div>
+
+<!-- ===================== SCROLL CONTAINER ===================== -->
+<div class="scroll-container"></div>
+
+<!-- ===================== ERROR FALLBACK (shows if libs fail) ===================== -->
+<div id="error-fallback" style="display:none; position:fixed; inset:0; background:#000; z-index:99999; color:#00ff66; font-family:'Share Tech Mono',monospace; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+  <h1 style="font-family:'Orbitron',sans-serif; font-size:32px; letter-spacing:8px; color:#ff2244; margin-bottom:20px;">LOAD ERROR</h1>
+  <p style="font-size:14px; letter-spacing:2px; opacity:0.8; max-width:500px; line-height:1.8;">Could not load 3D libraries.<br>Check your internet connection.<br><br>If you opened this file directly, the CDN scripts may be blocked. Try opening from a local server or visit the hosted version.</p>
+  <button onclick="window.location.href='main.html'" style="margin-top:30px; background:transparent; border:1px solid #00ff66; color:#00ff66; font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:3px; padding:12px 24px; cursor:pointer; text-transform:uppercase;">Skip to main site →</button>
+</div>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+// ============================================================
+// VENOM // FIFTH ELEMENT — Extended 3D Cinematic Scroll Intro
+// ============================================================
+
+// === LIB CHECK — if Three.js or GSAP failed to load, show error ===
+(function() {
+  var missing = [];
+  if (typeof THREE === 'undefined') missing.push('Three.js');
+  if (typeof gsap === 'undefined') missing.push('GSAP');
+  if (missing.length) {
+    console.error('Missing libraries:', missing);
+    var fb = document.getElementById('error-fallback');
+    if (fb) fb.style.display = 'flex';
+    var loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'none';
+    return;
+  }
+  // All good — continue
+  initVenomIntro();
+})();
+
+function initVenomIntro() {
+  'use strict';
+
+  // ---- Loader ----
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+  }, 3000);
+
+  // ============================================================
+  // SCENE SETUP
+  // ============================================================
+  const canvas = document.getElementById('city-canvas');
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x050505, 0.0055);
+  scene.background = new THREE.Color(0x050505);
+
+  // ---- MOBILE DETECTION ----
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (window.matchMedia && window.matchMedia('(max-width: 768px)').matches)
+    || ('ontouchstart' in window && window.innerWidth < 900);
+  const isLowPerf = isMobile || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+
+  const camera = new THREE.PerspectiveCamera(
+    75, window.innerWidth / window.innerHeight, 0.1, 4000
+  );
+  camera.position.set(0, 50, 250);
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas, antialias: !isMobile, alpha: false, powerPreference: 'high-performance'
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  // Lower pixel ratio on mobile to save GPU
+  renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
+
+  // ---- FRAME RATE CAP (saves battery + reduces mobile lag) ----
+  // Desktop: 60fps, Mobile: 30fps (still smooth for cinematic feel)
+  const targetFPS = isMobile ? 30 : 60;
+  const frameInterval = 1000 / targetFPS;
+  let lastRenderTime = 0;
+
+  // ============================================================
+  // GROUND GRID (Tron-style)
+  // ============================================================
+  const gridSize = isMobile ? 2000 : 4000;
+  const gridDivisions = isMobile ? 80 : 200;
+  const grid = new THREE.GridHelper(gridSize, gridDivisions, 0x00ff66, 0x003311);
+  grid.position.y = 0;
+  grid.material.transparent = true;
+  grid.material.opacity = 0.3;
+  scene.add(grid);
+
+  // Second grid higher up (appears when ascending — gives sense of layers)
+  const grid2 = new THREE.GridHelper(gridSize, 100, 0x00ff66, 0x002208);
+  grid2.position.y = 380;
+  grid2.material.transparent = true;
+  grid2.material.opacity = 0;
+  scene.add(grid2);
+
+  // ============================================================
+  // BUILDINGS (Procedural Cyberpunk City — expanded)
+  // ============================================================
+  const buildingCount = isMobile ? 50 : (isLowPerf ? 150 : 240);
+  const cityRange = 500;
+  const canyonWidth = 28;
+
+  // Track a special "hero" tower we'll fly to during ABOUT phase
+  let heroTower = null;
+  let heroTowerMat = null;
+  let heroTowerHalo = null;
+
+  for (let i = 0; i < buildingCount; i++) {
+    const x = (Math.random() - 0.5) * cityRange * 2;
+    const z = (Math.random() - 0.5) * cityRange * 2 - 100;
+
+    // Skip buildings in the canyon (camera path)
+    if (Math.abs(x) < canyonWidth && z > -450 && z < 250) continue;
+
+    const height = Math.random() * 220 + 40;
+    const width = Math.random() * 12 + 8;
+    const depth = Math.random() * 12 + 8;
+
+    // Building body (dark)
+    const geo = new THREE.BoxGeometry(width, height, depth);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x080a0c });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, height / 2, z);
+    scene.add(mesh);
+
+    // Neon edges (65% chance)
+    if (Math.random() > 0.35) {
+      const edges = new THREE.EdgesGeometry(geo);
+      const lineMat = new THREE.LineBasicMaterial({
+        color: 0x00ff66,
+        transparent: true,
+        opacity: 0.4 + Math.random() * 0.4,
+        blending: THREE.AdditiveBlending
+      });
+      const line = new THREE.LineSegments(edges, lineMat);
+      line.position.copy(mesh.position);
+      scene.add(line);
+    }
+
+    // Window lights (35% chance)
+    if (Math.random() > 0.65) {
+      const windowGeo = new THREE.PlaneGeometry(width * 0.8, height * 0.8);
+      const windowMat = new THREE.MeshBasicMaterial({
+        color: 0x00ff66,
+        transparent: true,
+        opacity: 0.05 + Math.random() * 0.05,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide
+      });
+      const windowMesh = new THREE.Mesh(windowGeo, windowMat);
+      windowMesh.position.set(x, height / 2, z + depth / 2 + 0.1);
+      scene.add(windowMesh);
+    }
+
+    // Designate a "hero" tower — tall, in front of camera path
+    if (!heroTower && height > 200 && x > -50 && x < 50 && z > -350 && z < -200) {
+      heroTower = mesh;
+      heroTowerMat = mat;
+
+      // Special halo around hero tower
+      const haloGeo = new THREE.TorusGeometry(width * 1.5, 0.8, 8, 32);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: 0x00ff66,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending
+      });
+      heroTowerHalo = new THREE.Mesh(haloGeo, haloMat);
+      heroTowerHalo.position.set(x, height + 5, z);
+      heroTowerHalo.rotation.x = Math.PI / 2;
+      scene.add(heroTowerHalo);
+
+      // Override material so we can highlight it
+      heroTowerMat.color.setHex(0x002211);
+    }
+  }
+
+  // ============================================================
+  // FLYING TAXIS (Glowing orbs on curved paths)
+  // ============================================================
+  const taxis = [];
+  const taxiCount = isMobile ? 3 : (isLowPerf ? 10 : 16);
+
+  for (let i = 0; i < taxiCount; i++) {
+    const geo = new THREE.SphereGeometry(2, 8, 8);
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x00ff66,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      opacity: 0.9
+    });
+    const taxi = new THREE.Mesh(geo, mat);
+
+    const points = [];
+    for (let j = 0; j < 6; j++) {
+      points.push(new THREE.Vector3(
+        (Math.random() - 0.5) * 600,
+        Math.random() * 200 + 30,
+        (Math.random() - 0.5) * 900 - 100
+      ));
+    }
+    taxi.userData.curve = new THREE.CatmullRomCurve3(points, true);
+    taxi.userData.progress = Math.random();
+    taxi.userData.speed = Math.random() * 0.0003 + 0.0001;
+
+    // Add glow halo
+    const haloGeo = new THREE.SphereGeometry(5, 8, 8);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: 0x00ff66,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      opacity: 0.2
+    });
+    const halo = new THREE.Mesh(haloGeo, haloMat);
+    taxi.add(halo);
+
+    scene.add(taxi);
+    taxis.push(taxi);
+  }
+
+  // ============================================================
+  // STARS (Visible when ascending)
+  // ============================================================
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = isMobile ? 200 : (isLowPerf ? 700 : 1200);
+  const starPositions = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount * 3; i += 3) {
+    starPositions[i] = (Math.random() - 0.5) * 4000;
+    starPositions[i + 1] = Math.random() * 1800 + 400;
+    starPositions[i + 2] = (Math.random() - 0.5) * 4000;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+  const starMat = new THREE.PointsMaterial({
+    color: 0x00ff66,
+    size: 2.5,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending
+  });
+  const stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  // ============================================================
+  // VENOM HOLOGRAM (Appears in the sky)
+  // ============================================================
+  const holoGroup = new THREE.Group();
+
+  const cubeGeo = new THREE.BoxGeometry(18, 18, 18);
+  const cubeMat = new THREE.MeshBasicMaterial({
+    color: 0x00ff66,
+    wireframe: true,
+    transparent: true,
+    opacity: 0
+  });
+  const holoCube = new THREE.Mesh(cubeGeo, cubeMat);
+  holoGroup.add(holoCube);
+
+  const shellGeo = new THREE.IcosahedronGeometry(28, 1);
+  const shellMat = new THREE.MeshBasicMaterial({
+    color: 0x00ff66,
+    wireframe: true,
+    transparent: true,
+    opacity: 0
+  });
+  const holoShell = new THREE.Mesh(shellGeo, shellMat);
+  holoGroup.add(holoShell);
+
+  const glowGeo = new THREE.SphereGeometry(12, 16, 16);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0x00ff66,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending
+  });
+  const holoGlow = new THREE.Mesh(glowGeo, glowMat);
+  holoGroup.add(holoGlow);
+
+  holoGroup.position.set(0, 380, -600);
+  scene.add(holoGroup);
+
+  // ============================================================
+  // GSAP SCROLLTRIGGER — Camera Path (extended journey)
+  // ============================================================
+  gsap.registerPlugin(ScrollTrigger);
+
+  const cameraTL = gsap.timeline({
+    scrollTrigger: {
+      trigger: ".scroll-container",
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 1.5,
+      onUpdate: (self) => {
+        document.getElementById('progress-bar').style.width = (self.progress * 100) + '%';
+      }
+    }
+  });
+
+  // PHASE 1 — Fly forward through canyon (0-20%)
+  cameraTL.to(camera.position, {
+    z: -180, duration: 1, ease: "none"
+  }, 0)
+  .to(camera.position, { x: 8,  duration: 0.5, ease: "sine.inOut" }, 0)
+  .to(camera.position, { x: -8, duration: 0.5, ease: "sine.inOut" }, 0.5)
+  .to(camera.position, { x: 0,  duration: 0.5, ease: "sine.inOut" }, 1);
+
+  // PHASE 2 — Dive down into deep city (20-40%)
+  cameraTL.to(camera.position, {
+    y: -5, z: -380, duration: 1, ease: "power1.inOut"
+  }, 1)
+  .to(camera.position, { x: 6,  duration: 0.5, ease: "sine.inOut" }, 1)
+  .to(camera.position, { x: -3, duration: 0.5, ease: "sine.inOut" }, 1.5);
+
+  // PHASE 3 — Approach hero tower (40-55%)
+  cameraTL.to(camera.position, {
+    x: 0, y: 30, z: -440, duration: 1, ease: "power2.out"
+  }, 2);
+
+  // Highlight hero tower halo (only if it was created)
+  if (heroTowerHalo && heroTowerHalo.material) {
+    cameraTL.to(heroTowerHalo.material, {
+      opacity: 0.8, duration: 1
+    }, 2);
+  }
+
+  // PHASE 4 — Ascend above the city into sky (55-80%)
+  cameraTL.to(camera.position, {
+    y: 340, z: -520, x: 0, duration: 1.5, ease: "power2.inOut"
+  }, 3);
+
+  // Stars fade in
+  cameraTL.to(starMat, { opacity: 0.7, duration: 1 }, 3.5);
+
+  // Higher grid fades in (layer effect)
+  cameraTL.to(grid2.material, { opacity: 0.15, duration: 1 }, 3.5);
+
+  // PHASE 5 — Approach hologram (80-100%)
+  cameraTL.to(camera.position, {
+    y: 370, z: -580, duration: 1, ease: "power1.out"
+  }, 4.5);
+
+  // Hologram fades in during ascent
+  cameraTL.to(cubeMat,  { opacity: 0.85, duration: 1 }, 3.5)
+  .to(shellMat, { opacity: 0.35, duration: 1 }, 3.5)
+  .to(glowMat,  { opacity: 0.4,  duration: 1 }, 3.5);
+
+  // ============================================================
+  // TEXT ANIMATIONS (5 text reveals)
+  // ============================================================
+
+  // TEXT 1 — "Welcome to the world of VENOM" (8-18% scroll)
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: ".scroll-container",
+      start: "8% center",
+      end: "18% center",
+      scrub: 1
+    }
+  })
+  .fromTo(".text-welcome",
+    { opacity: 0, y: 80, scale: 0.9 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.5 }
+  )
+  .to(".text-welcome",
+    { opacity: 0, y: -80, scale: 1.1, duration: 0.5 }
+  );
+
+  // TEXT 2 — "Here is where the magic begins" (24-34% scroll)
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: ".scroll-container",
+      start: "24% center",
+      end: "34% center",
+      scrub: 1
+    }
+  })
+  .fromTo(".text-magic",
+    { opacity: 0, y: 60, scale: 0.9 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.5 }
+  )
+  .to(".text-magic",
+    { opacity: 0, y: -60, scale: 1.1, duration: 0.5 }
+  );
+
+  // TEXT 3 — "BOND" (42-52% scroll — during hero tower approach)
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: ".scroll-container",
+      start: "42% center",
+      end: "52% center",
+      scrub: 1
+    }
+  })
+  .fromTo(".text-bond",
+    { opacity: 0, y: 60, scale: 0.9 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.5 }
+  )
+  .to(".text-bond",
+    { opacity: 0, y: -60, scale: 1.1, duration: 0.5 }
+  );
+
+  // TEXT 4 — "VENOM ONLINE" (62-72% scroll — during ascent)
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: ".scroll-container",
+      start: "62% center",
+      end: "72% center",
+      scrub: 1
+    }
+  })
+  .fromTo(".text-system",
+    { opacity: 0, y: 60, scale: 0.9 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.5 }
+  )
+  .to(".text-system",
+    { opacity: 0, y: -60, scale: 1.1, duration: 0.5 }
+  );
+
+  // TEXT 5 — "ENTER" (82-95% scroll — final reveal)
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: ".scroll-container",
+      start: "82% center",
+      end: "95% center",
+      scrub: 1
+    }
+  })
+  .fromTo(".text-enter",
+    { opacity: 0, y: 60, scale: 0.9 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.5 }
+  )
+  .to(".text-enter",
+    { opacity: 1, y: 0, scale: 1.05, duration: 0.5 }
+  );
+
+  // ============================================================
+  // SCROLL HINT — Hide after first scroll
+  // ============================================================
+  let hintHidden = false;
+  window.addEventListener('scroll', () => {
+    if (!hintHidden && window.scrollY > 50) {
+      document.getElementById('scroll-hint').classList.add('hidden');
+      hintHidden = true;
+    }
+  });
+
+  // ============================================================
+  // DEBUG STATUS — disabled in production (was for testing only)
+  // ============================================================
+  function dbgLog(msg) {
+    // Silent — no on-screen debug box anymore
+    // console.log('[VENOM]', msg);
+  }
+
+  // ============================================================
+  // SKIP INTRO — directly triggers redirect (reliable)
+  // ============================================================
+  document.getElementById('skip-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    triggerRedirect();
+  });
+
+  // ============================================================
+  // REDIRECT TO main.html — robust, multi-fallback
+  // ============================================================
+  let redirecting = false;
+  function goToMain() {
+    try {
+      window.location.href = 'main.html';
+    } catch (err) {}
+    // Fallback 1: try assign
+    setTimeout(function() {
+      try { window.location.assign('main.html'); } catch (e) {}
+    }, 100);
+    // Fallback 2: try replace
+    setTimeout(function() {
+      try { window.location.replace('main.html'); } catch (e) {}
+    }, 300);
+    // Fallback 3: open in same tab via anchor click (works around some sandbox issues)
+    setTimeout(function() {
+      try {
+        var a = document.createElement('a');
+        a.href = 'main.html';
+        document.body.appendChild(a);
+        a.click();
+      } catch (e) {}
+    }, 500);
+  }
+
+  function showManualEnter() {
+    if (document.getElementById('manual-enter')) return;
+    var btn = document.createElement('button');
+    btn.id = 'manual-enter';
+    btn.innerHTML = '⚠ Tap to enter VENOM';
+    btn.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:99999; background:#000; border:2px solid #00ff66; color:#00ff66; font-family:Orbitron,sans-serif; font-size:18px; letter-spacing:4px; padding:20px 40px; cursor:pointer; text-transform:uppercase; box-shadow:0 0 30px rgba(0,255,102,0.6);';
+    btn.onclick = function() {
+      window.open('main.html', '_self');
+    };
+    document.body.appendChild(btn);
+  }
+
+  function triggerRedirect() {
+    if (redirecting) return;
+    redirecting = true;
+    var flash = document.getElementById('flash');
+    var textEnter = document.querySelector('.text-enter');
+
+    if (flash && typeof gsap !== 'undefined') {
+      // === CINEMATIC TRANSITION (3 stages) ===
+      // Stage 1: zoom the "ENTER" text toward viewer (300ms)
+      if (textEnter) {
+        gsap.to(textEnter, {
+          scale: 3.5,
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power2.in'
+        });
+      }
+      // Stage 2: green glow flash (fades in slower, with green tint)
+      flash.style.background = 'radial-gradient(circle at center, rgba(0,255,102,0.9) 0%, rgba(0,255,102,0.4) 40%, #000 100%)';
+      gsap.to(flash, {
+        opacity: 1,
+        duration: 0.5,
+        ease: 'power2.in',
+        delay: 0.15,
+        onComplete: goToMain
+      });
+      // Stage 3 (safety net): if GSAP callback never fires, redirect after 1.5s
+      setTimeout(goToMain, 1500);
+    } else {
+      goToMain();
+    }
+  }
+
+  // End-of-scroll detection (primary trigger)
+  if (typeof ScrollTrigger !== 'undefined') {
+    ScrollTrigger.create({
+      trigger: ".scroll-container",
+      start: "bottom bottom",
+      onEnter: triggerRedirect
+    });
+  }
+
+  // Manual scroll watcher (backup trigger — catches edge cases)
+  window.addEventListener('scroll', function() {
+    var scrollPct = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+    if (scrollPct > 0.985 && !redirecting) {
+      triggerRedirect();
+    }
+  });
+
+  // ============================================================
+  // 360° CITY VIEW — Desktop: mouse drag + D key
+  //                Mobile: TWO-FINGER drag only (one finger = scroll)
+  // ============================================================
+  var lookState = {
+    yaw: 0, pitch: 0, curYaw: 0, curPitch: 0,
+    isDragging: false, lastX: 0, lastY: 0,
+    dKeyDown: false, dAutoYaw: 0
+  };
+
+  var lookSensitivity = 0.004;
+  var dRotateSpeed = 0.012;
+  var maxPitch = Math.PI / 3;
+  var maxYaw = Math.PI * 0.8;
+  var easeFactor = 0.08;
+
+  // Detect touch device
+  var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  if (!isTouchDevice) {
+    // ===== DESKTOP: mouse drag to look around =====
+    canvas.addEventListener('mousedown', function(e) {
+      lookState.isDragging = true;
+      lookState.lastX = e.clientX;
+      lookState.lastY = e.clientY;
+      canvas.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mouseup', function() {
+      lookState.isDragging = false;
+      canvas.style.cursor = 'grab';
+    });
+    window.addEventListener('mousemove', function(e) {
+      if (!lookState.isDragging) return;
+      var dx = e.clientX - lookState.lastX;
+      var dy = e.clientY - lookState.lastY;
+      lookState.lastX = e.clientX;
+      lookState.lastY = e.clientY;
+      lookState.yaw   -= dx * lookSensitivity;
+      lookState.pitch -= dy * lookSensitivity;
+      if (lookState.yaw > maxYaw) lookState.yaw = maxYaw;
+      if (lookState.yaw < -maxYaw) lookState.yaw = -maxYaw;
+      if (lookState.pitch > maxPitch) lookState.pitch = maxPitch;
+      if (lookState.pitch < -maxPitch) lookState.pitch = -maxPitch;
+    });
+    canvas.style.cursor = 'grab';
+  } else {
+    // ===== MOBILE: TWO-FINGER drag to look around (one finger = scroll) =====
+    // Touch listeners are passive: true so they NEVER block scrolling.
+    canvas.addEventListener('touchstart', function(e) {
+      // Only activate look-around with exactly 2 fingers
+      if (e.touches.length === 2) {
+        lookState.isDragging = true;
+        lookState.lastX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        lookState.lastY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      } else {
+        // 1 finger (or 3+) — let the browser scroll normally
+        lookState.isDragging = false;
+      }
+    }, { passive: true });
+    canvas.addEventListener('touchmove', function(e) {
+      if (!lookState.isDragging) return;
+      if (e.touches.length !== 2) {
+        lookState.isDragging = false;
+        return;
+      }
+      var midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      var midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      var dx = midX - lookState.lastX;
+      var dy = midY - lookState.lastY;
+      lookState.lastX = midX;
+      lookState.lastY = midY;
+      // Two-finger sensitivity is slightly higher (more intentional)
+      lookState.yaw   -= dx * lookSensitivity * 1.5;
+      lookState.pitch -= dy * lookSensitivity * 1.5;
+      if (lookState.yaw > maxYaw) lookState.yaw = maxYaw;
+      if (lookState.yaw < -maxYaw) lookState.yaw = -maxYaw;
+      if (lookState.pitch > maxPitch) lookState.pitch = maxPitch;
+      if (lookState.pitch < -maxPitch) lookState.pitch = -maxPitch;
+      // DO NOT call preventDefault — we want scrolling to remain possible
+    }, { passive: true });
+    canvas.addEventListener('touchend', function() {
+      lookState.isDragging = false;
+    }, { passive: true });
+    canvas.style.cursor = 'default';
+  }
+
+  // D key = hold to auto-rotate (desktop only — no keyboard on mobile)
+  if (!isTouchDevice) {
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'd' || e.key === 'D') {
+        lookState.dKeyDown = true;
+      }
+      // Enter key triggers redirect
+      if (e.key === 'Enter' && !redirecting) {
+        var scrollPct = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+        if (scrollPct > 0.5) triggerRedirect();
+      }
+    });
+    window.addEventListener('keyup', function(e) {
+      if (e.key === 'd' || e.key === 'D') {
+        lookState.dKeyDown = false;
+      }
+    });
+  }
+
+  // ============================================================
+  // ANIMATION LOOP
+  // ============================================================
+  let frame = 0;
+
+  function animate(now) {
+    requestAnimationFrame(animate);
+
+    // ---- FRAME RATE CAP ----
+    // Skip rendering if not enough time has passed (saves battery + GPU)
+    if (!now) now = performance.now();
+    const elapsed = now - lastRenderTime;
+    if (elapsed < frameInterval) return;
+    lastRenderTime = now - (elapsed % frameInterval);
+
+    frame++;
+
+    // ---- 360° LOOK-AROUND ----
+    // If D key held, continuously rotate yaw (cinematic spin)
+    if (lookState.dKeyDown) {
+      lookState.dAutoYaw += dRotateSpeed;
+      // wrap to keep number small
+      if (lookState.dAutoYaw > Math.PI * 2) lookState.dAutoYaw -= Math.PI * 2;
+    }
+    // Total yaw = drag yaw + D-auto yaw
+    var totalYaw = lookState.yaw + lookState.dAutoYaw;
+
+    // Ease current values toward targets for smoothness
+    lookState.curYaw   += (totalYaw - lookState.curYaw) * easeFactor;
+    lookState.curPitch += (lookState.pitch - lookState.curPitch) * easeFactor;
+
+    // Build the look direction: base forward vector + yaw/pitch offsets
+    // Base look = forward and slightly down
+    var baseLookY = camera.position.y - 5;
+    var baseLookZ = camera.position.z - 50;
+    var baseLookX = camera.position.x;
+
+    // Apply yaw (rotate around Y axis) and pitch (rotate around X axis)
+    var forwardX = baseLookX - camera.position.x;
+    var forwardY = baseLookY - camera.position.y;
+    var forwardZ = baseLookZ - camera.position.z;
+
+    // Yaw rotation (around Y axis)
+    var cosY = Math.cos(lookState.curYaw);
+    var sinY = Math.sin(lookState.curYaw);
+    var yawedX = forwardX * cosY - forwardZ * sinY;
+    var yawedZ = forwardX * sinY + forwardZ * cosY;
+    var yawedY = forwardY;
+
+    // Pitch rotation (around X axis, after yaw)
+    var cosP = Math.cos(lookState.curPitch);
+    var sinP = Math.sin(lookState.curPitch);
+    var pitchedY = yawedY * cosP - yawedZ * sinP;
+    var pitchedZ = yawedY * sinP + yawedZ * cosP;
+
+    var lookTargetX = camera.position.x + yawedX;
+    var lookTargetY = camera.position.y + pitchedY;
+    var lookTargetZ = camera.position.z + pitchedZ;
+    camera.lookAt(lookTargetX, lookTargetY, lookTargetZ);
+
+    // Slight camera shake (vehicle vibration)
+    camera.position.x += Math.sin(frame * 0.05) * 0.1;
+    camera.position.y += Math.cos(frame * 0.04) * 0.05;
+
+    // Update flying taxis
+    taxis.forEach(taxi => {
+      taxi.userData.progress += taxi.userData.speed;
+      if (taxi.userData.progress > 1) taxi.userData.progress = 0;
+      const pos = taxi.userData.curve.getPointAt(taxi.userData.progress);
+      taxi.position.copy(pos);
+    });
+
+    // Rotate hologram
+    holoGroup.rotation.y += 0.005;
+    holoGroup.rotation.x = Math.sin(frame * 0.01) * 0.1;
+    holoCube.rotation.x += 0.01;
+    holoCube.rotation.y += 0.008;
+    holoShell.rotation.y -= 0.003;
+
+    // Pulse hologram glow
+    const pulse = 0.3 + Math.sin(frame * 0.05) * 0.1;
+    glowMat.opacity = pulse;
+
+    // Hero tower halo slow rotate
+    if (heroTowerHalo) {
+      heroTowerHalo.rotation.z += 0.005;
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ============================================================
+  // RESIZE
+  // ============================================================
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+} // end initVenomIntro()
+</script>
 
 <!-- ============================================================
-     VENOM SECURITY LAYER — Anti-copy, anti-save, anti-devtools
+     VENOM SECURITY LAYER — Smart Protection (no aggressive dimming)
+     - Blocks right-click, copy, drag, save shortcuts
+     - Detects devtools but only logs (no screen dimming)
+     - Disables F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+S
+     - Mobile: blocks long-press image save
      ============================================================ -->
 <script>
 (function() {
@@ -83,26 +1270,24 @@
     return false;
   });
 
-  // 2. Disable text selection (except in inputs)
+  // 2. Disable text selection (except in inputs/textareas)
   document.addEventListener('selectstart', function(e) {
-    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+    var tag = e.target.tagName;
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
       e.preventDefault();
       return false;
     }
   });
 
-  // 3. Disable copy/cut/paste (except in inputs)
-  document.addEventListener('copy', function(e) {
-    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-      e.preventDefault();
-      return false;
-    }
-  });
-  document.addEventListener('cut', function(e) {
-    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-      e.preventDefault();
-      return false;
-    }
+  // 3. Disable copy / cut (except in inputs)
+  ['copy', 'cut'].forEach(function(evt) {
+    document.addEventListener(evt, function(e) {
+      var tag = e.target.tagName;
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        e.preventDefault();
+        return false;
+      }
+    });
   });
 
   // 4. Disable drag and drop (prevents dragging images to save)
@@ -111,101 +1296,75 @@
     return false;
   });
 
-  // 5. Disable image saving via long-press (mobile)
+  // 5. Mobile: disable long-press image save
   document.addEventListener('touchstart', function(e) {
     if (e.target.tagName === 'IMG') {
       e.preventDefault();
     }
   }, { passive: false });
 
-  // 6. Detect DevTools (basic detection — slows them down)
-  let devtoolsOpen = false;
-  const threshold = 200; // pixels
-  
-  setInterval(function() {
-    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-    if (widthThreshold || heightThreshold) {
-      if (!devtoolsOpen) {
-        devtoolsOpen = true;
-        // Optional: redirect or show warning
-        document.body.style.opacity = '0.3';
-        setTimeout(function() { document.body.style.opacity = ''; }, 2000);
-      }
-    } else {
-      if (devtoolsOpen) {
-        devtoolsOpen = false;
-        document.body.style.opacity = '';
-      }
-    }
-  }, 1000);
-
-  // 7. Disable keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S)
+  // 6. Block keyboard shortcuts (F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+S, Ctrl+A)
   document.addEventListener('keydown', function(e) {
     // F12
-    if (e.keyCode === 123) {
-      e.preventDefault();
-      return false;
-    }
+    if (e.keyCode === 123) { e.preventDefault(); return false; }
     // Ctrl+Shift+I (DevTools)
-    if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-      e.preventDefault();
-      return false;
-    }
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 73) { e.preventDefault(); return false; }
     // Ctrl+Shift+J (Console)
-    if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-      e.preventDefault();
-      return false;
-    }
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 74) { e.preventDefault(); return false; }
     // Ctrl+Shift+C (Element Inspector)
-    if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
-      e.preventDefault();
-      return false;
-    }
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 67) { e.preventDefault(); return false; }
     // Ctrl+U (View Source)
-    if (e.ctrlKey && e.keyCode === 85) {
-      e.preventDefault();
-      return false;
-    }
+    if (e.ctrlKey && e.keyCode === 85) { e.preventDefault(); return false; }
     // Ctrl+S (Save Page)
-    if (e.ctrlKey && e.keyCode === 83) {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+A (Select All) — only block if not in input
+    if (e.ctrlKey && e.keyCode === 83) { e.preventDefault(); return false; }
+    // Ctrl+A (Select All) — only block outside inputs
     if (e.ctrlKey && e.keyCode === 65) {
-      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      var tag = e.target.tagName;
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
         e.preventDefault();
         return false;
       }
     }
   });
 
-  // 8. Clear console periodically (makes inspection harder)
+  // 7. DevTools detection — LOG ONLY, no screen dimming
+  // (the old aggressive dimming broke the UX; this version just records)
+  var devtoolsOpen = false;
   setInterval(function() {
-    try {
-      console.clear();
-    } catch(e) {}
-  }, 5000);
+    var widthDiff = window.outerWidth - window.innerWidth > 200;
+    var heightDiff = window.outerHeight - window.innerHeight > 200;
+    var nowOpen = widthDiff || heightDiff;
+    if (nowOpen !== devtoolsOpen) {
+      devtoolsOpen = nowOpen;
+      if (devtoolsOpen) {
+        console.warn('[VENOM SECURITY] DevTools detected.');
+      }
+    }
+  }, 1500);
 
-  // 9. Disable view-source navigation
+  // 8. Console branding (one-time, not spamming)
+  console.log('%c╔══════════════════════════════════════════════════════════╗', 'color:#00ff66;font-size:12px;');
+  console.log('%c║ © 2026 vnom (1550576936)   ALL RIGHTS RESERVED.          ║', 'color:#00ff66;font-size:12px;');
+  console.log('%c║  Unauthorized copying, modification, or distribution       ║', 'color:#00ff66;font-size:12px;');
+  console.log('%c║  of this software is strictly prohibited.                 ║', 'color:#00ff66;font-size:12px;');
+  console.log('%c╚═══════════════════════════════════════════════════════════╝', 'color:#00ff66;font-size:12px;');
+
+  // 9. Disable view-source navigation via Ctrl+U (extra guard)
   window.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.keyCode === 85) { // Ctrl+U
+    if (e.ctrlKey && e.keyCode === 85) {
       e.preventDefault();
-      window.location.href = 'about:blank';
       return false;
     }
   });
 
-  console.log('%c╔══════════════════════════════════════════════════════════╗', 'color: #00ff66; font-size: 12px;');
-    console.log('%c║  © 2026 VELXT STUDIOS & AZUR. ALL RIGHTS RESERVED.     ║', 'color: #00ff66; font-size: 12px;');
-    console.log('%c║  Unauthorized copying, modification, or distribution     ║', 'color: #00ff66; font-size: 12px;');
-    console.log('%c║  of this software is strictly prohibited.               ║', 'color: #00ff66; font-size: 12px;');
-    console.log('%c║  LICENSED TO: VELXT STUDIOS & AZUR                      ║', 'color: #00ff66; font-size: 12px;');
-    console.log('%c╚══════════════════════════════════════════════════════════╝', 'color: #00ff66; font-size: 12px;');
-  console.log('%cViolators will be prosecuted to the full extent of the law.', 'color: #ff2244; font-size: 14px;');
+  // 10. Obfuscate source on demand: clear console every 10s (gentle, not 5s spam)
+  setInterval(function() {
+    try { console.clear(); } catch (e) {}
+  }, 10000);
+
 })();
 </script>
+
 
 </body>
 </html>
