@@ -145,7 +145,7 @@ VENOM Radio Pro Frontend
 Some radio servers don't send CORS headers, which blocks metadata fetching from the browser. In this case:
 - ✅ The **audio stream still plays** (audio is not affected by CORS)
 - ❌ The "Now Playing" metadata won't update (shows "LIVE" instead)
-- **Fix:** Add CORS headers to your Icecast server, OR use the VELXT backend proxy
+
 
 ---
 
@@ -303,12 +303,7 @@ If you broadcast copyrighted music, you need licenses from:
 
 ---
 
-## 📞 SUPPORT
 
-- **Email:** velxtstudio@gmail.com
-- **Response time:** 48 hours (business days)
-- **Duration:** 30 days from purchase
-- **Scope:** Bug fixes, deployment help, stream configuration
 
 ---
 
@@ -329,5 +324,4 @@ Updates are FREE for life with any license.
 **VENOM RADIO PRO**
 *The venom is loose.*
 
-📧  velxtstudio@gmail.com
 </div>
